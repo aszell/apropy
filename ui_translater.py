@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_translater.ui'
 #
-# Created: Wed Oct 12 09:42:02 2016
+# Created: Wed Oct 12 10:15:28 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -15,9 +15,6 @@ class Ui_TranslateWidget(object):
         TranslateWidget.resize(885, 607)
         self.gridLayout = QtGui.QGridLayout(TranslateWidget)
         self.gridLayout.setObjectName("gridLayout")
-        self.label = QtGui.QLabel(TranslateWidget)
-        self.label.setObjectName("label")
-        self.gridLayout.addWidget(self.label, 11, 0, 1, 1)
         self.transEdit = QtGui.QPlainTextEdit(TranslateWidget)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -88,7 +85,6 @@ class Ui_TranslateWidget(object):
 
     def retranslateUi(self, TranslateWidget):
         TranslateWidget.setWindowTitle(QtGui.QApplication.translate("TranslateWidget", "Translation", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("TranslateWidget", "Statistics:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("TranslateWidget", "Translated:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("TranslateWidget", "Comments:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("TranslateWidget", "Original:", None, QtGui.QApplication.UnicodeUTF8))

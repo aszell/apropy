@@ -14,10 +14,12 @@ from prop import propread, propsave, TransItem
 ININAME = "translater.ini"
 
 class TranslateWidget(Ui_TranslateWidget):
-    def __init__(self, window, origname, transname):
+    def __init__(self, window, statusBar, origname, transname):
         Ui_TranslateWidget.__init__(self)
-        
+
         self.window = window
+        self.statusBar = statusBar
+
         self.setupUi(window)
 
         # replace tab behaviour
@@ -30,9 +32,24 @@ class TranslateWidget(Ui_TranslateWidget):
         self.transfname = transname
         self.fill_dict(origname, transname)
 
+        self.setup_status_bar()
         self.create_actions()
 
         self.tablerefresh_from_bottom = False
+
+    def setup_status_bar(self):
+        self.statusBar.showMessage('Translated:')
+
+        self.progressBar = QtGui.QProgressBar()
+        self.statusBar.addPermanentWidget(self.progressBar)
+        self.progressBar.setGeometry(30, 40, 200, 25)
+
+        self.update_status_bar()
+
+    def update_status_bar(self):
+        orig_keycnt = len(self.origins)
+        trans_keycnt = len(self.trans)
+        self.progressBar.setValue(trans_keycnt * 100 / orig_keycnt)
 
     def tableKeyPress(self, event):
         if event.key() == QtCore.Qt.Key_Tab:
@@ -70,7 +87,6 @@ class TranslateWidget(Ui_TranslateWidget):
         self.filterEdit.setFocus()
 
     def table_data_changed(self, topleft, bottomright):
-        print "table"
         key = self.model.item(topleft.row(), 0).text()
         translation = self.model.item(topleft.row(), 2).text()
         self.update_translation(key, translation)
@@ -88,18 +104,16 @@ class TranslateWidget(Ui_TranslateWidget):
             newkey = TransItem(key, self.origins[key].comment, translation)
             self.trans[key] = newkey
 
+        self.update_status_bar()
+
     def bottom_data_changed(self):
-        print "bottom"
         self.tablerefresh_from_bottom = True
         selected = self.tableView.selectedIndexes()
         if selected: # if nothing selected, text gets lost?
             key = self.model.item(selected[0].row(), 0).text()
-            #self.data_changed(selected[0], selected[0])
             self.update_translation(key, self.transEdit.toPlainText())
             # refresh the other view of the same data
-            #self.model.blockSignals(True)
             self.update_table(self.transEdit.toPlainText())
-            #self.model.blockSignals(False)
 
         self.tablerefresh_from_bottom = False
 
@@ -117,7 +131,6 @@ class TranslateWidget(Ui_TranslateWidget):
             self.commentEdit.setPlainText(self.origins[key].comment)
 
     def update_table(self, translation):
-        print 'tableup'
         selected = self.tableView.selectedIndexes()
         self.model.item(selected[0].row(), 2).setText(translation)
 
@@ -198,7 +211,7 @@ if __name__ == "__main__":
     window = QMainWindow()
     centralwidget = QWidget()
     
-    ui = TranslateWidget(centralwidget, origfname, transfname)
+    ui = TranslateWidget(centralwidget, window.statusBar(), origfname, transfname)
     window.setCentralWidget(centralwidget)
     window.setFixedSize(1400,900)
     window.show()
