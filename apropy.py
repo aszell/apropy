@@ -118,6 +118,10 @@ class ApropyMainWindow(Ui_MainWindow):
         self.transEdit.keyPressEvent = self.transEditKeyPress
         
     def on_save(self):
+        if self.config.get_cleanup_keys():
+            print "Cleaning up and reordering translation keys before saving"
+            self.cleanup_dict()
+            
         fout = open(self.transfname, 'wb')
         count =propsave(fout, self.trans)
         fout.close()
@@ -210,6 +214,18 @@ class ApropyMainWindow(Ui_MainWindow):
             self.transEdit.blockSignals(True)
             self.update_bottom(key)
             self.transEdit.blockSignals(False)
+            
+    def cleanup_dict(self):
+        # reorder translated strings to match original translation,
+        # delete obsolete keys
+        newOrder = OrderedDict()
+        for k in self.origins.keys():
+            if k in self.trans:
+                newOrder[k] = self.trans[k]
+
+        self.trans = newOrder
+        
+        self.update_status_bar()
 
     def update_translation(self, key, translation):
         if key in self.trans:
@@ -221,17 +237,6 @@ class ApropyMainWindow(Ui_MainWindow):
         elif translation.strip():
             newkey = TransItem(key, self.origins[key].comment, translation)
             self.trans[key] = newkey
-            print newkey
-            
-            if self.config.get_keep_keyorder():
-                print "Reordering"
-                # put it in the same position as in the original translation,
-                newOrder = OrderedDict()
-                for k in self.origins.keys():
-                    if k in self.trans:
-                        newOrder[k] = self.trans[k]
-
-                self.trans = newOrder
 
         self.update_status_bar()
 
@@ -422,9 +427,12 @@ class MyConfig(ConfigParser, object):
             was_missing = True
 
         try:
-            self.get('options', 'keep_base_key_order')
+            self.get('options', 'cleanup_keys_on_save')
         except:
-            self.set('options', 'keep_base_key_order', True)
+            # bool values must be set to string to avoid 
+            #    "TypeError: argument of type 'bool' is not iterable"
+            # see http://stackoverflow.com/a/21485083/501814
+            self.set('options', 'cleanup_keys_on_save', 'True')
             was_missing = True
             
         if was_missing:
@@ -438,8 +446,8 @@ class MyConfig(ConfigParser, object):
     def get_transfname(self): return self.get('files', 'trans')
     def set_transfname(self, value): self.set('files', 'trans', value)
     
-    def get_keep_keyorder(self): return self.getboolean('options', 'keep_base_key_order')
-    def set_keep_keyorder(self, value): self.setboolean('options', 'keep_base_key_order', value)
+    def get_cleanup_keys(self): return self.getboolean('options', 'cleanup_keys_on_save')
+    def set_cleanup_keys(self, value): self.setboolean('options', 'cleanup_keys_on_save', value)
 
 def config_update_filenames(new_orig, new_trans):
     config.set_origfname(new_orig)
