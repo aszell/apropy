@@ -22,24 +22,6 @@ ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
 LOG_FNAME = 'apropy.log'
 
-def is_same_dir(first, second):
-    # should be using os.path.samefile(path1, path2) under Unix...
-    # should be making lower case on Windows
-    rel1, rel2 = first, second
-    try:
-        rel1 = os.path.relpath(first)
-    except:
-        pass
-        
-    try:
-        rel2 = os.path.relpath(second)
-    except:
-        pass
-        
-    rel1, rel2 = os.path.normpath(rel1), os.path.normpath(rel2)
-    #print rel1, rel2
-    return rel1 == rel2
-
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
         Ui_MainWindow.__init__(self)
@@ -472,7 +454,25 @@ def config_update_filenames(new_orig, new_trans):
     config.set_origfname(new_orig)
     config.set_transfname(new_trans)
     config.save()
-    
+
+def is_same_dir(first, second):
+    # should be using os.path.samefile(path1, path2) under Unix...
+    # should be making lower case on Windows
+    rel1, rel2 = first, second
+    try:
+        rel1 = os.path.relpath(first)
+    except:
+        pass
+        
+    try:
+        rel2 = os.path.relpath(second)
+    except:
+        pass
+        
+    rel1, rel2 = os.path.normpath(rel1), os.path.normpath(rel2)
+    #print rel1, rel2
+    return rel1 == rel2
+
 if __name__ == "__main__":
     config = MyConfig()
     workdir = '.'
