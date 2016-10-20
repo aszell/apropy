@@ -1,4 +1,5 @@
 import sys
+import time
 from collections import OrderedDict
 
 from ConfigParser import ConfigParser, DuplicateSectionError
@@ -92,7 +93,6 @@ class ApropyMainWindow(Ui_MainWindow):
         self.transEdit.keyPressEvent = self.transEditKeyPress
         
     def on_save(self):
-        # todo: save currently edited, but unfinished item as well on CTRL+S!
         fout = open(self.transfname, 'wb')
         propsave(fout, self.trans)
         fout.close()
@@ -103,10 +103,17 @@ class ApropyMainWindow(Ui_MainWindow):
         print "Open"
         fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
                                     caption="cap", dir=workdir, filter="*.properties")
-                                    
-        self.transfname = fullpath
-        self.create_dict(self.origfname, self.transfname)
 
+        old_transfname = self.transfname
+        try:
+            self.transfname = fullpath
+            self.create_dict(self.origfname, self.transfname)
+            self.update_status_bar()
+            self.tableView.scrollToTop()
+        except Exception, e:
+            print "Exception hit:", e            
+            self.transfname = old_transfname
+        
     def on_find(self):
         self.filterEdit.setFocus()
 
@@ -115,6 +122,8 @@ class ApropyMainWindow(Ui_MainWindow):
             self.fill_model(include_translated=False)
         else:
             self.fill_model(include_translated=True)
+            
+        print self.filter_proxy_model.rowCount()            
 
     def update_hidden_col(self, row):
         ''' Updates the hidden fourth column used for filtering (all texts together)
@@ -159,7 +168,7 @@ class ApropyMainWindow(Ui_MainWindow):
 
             self.trans = newOrder
 
-        #self.update_status_bar()
+        self.update_status_bar()
 
     def bottom_data_changed(self):
         # the way I get to model item from filtered table row is obviously overcomplicated
@@ -199,9 +208,14 @@ class ApropyMainWindow(Ui_MainWindow):
         self.update_bottom(key)
 
     def fill_model(self, include_translated=True, **kwargs):
-        self.model.blockSignals(True)
-        self.model.clear()
+        old_rowcnt = self.model.rowCount()
 
+        # beginResetModel - endResetModel is required to get the number of displayed table
+        # rows be properly updated
+        self.model.beginResetModel()
+        self.model.clear()
+        self.model.blockSignals(True)
+        
         row = 0
         for idx, tr in enumerate(self.origins.values()):
             # skip lines with existing translation if 'untranslated only' selected
@@ -226,9 +240,23 @@ class ApropyMainWindow(Ui_MainWindow):
             self.model.setItem(row, 3, item_all)
             row += 1
 
+        # without blocking the signals we'd receive lots of errors 
+        # as the translation updates would be triggered on data change        
         self.model.blockSignals(False)
-        self.tableView.reset()
+        
+        self.model.endResetModel()
+        self.hide_last_col()
 
+    def hide_last_col(self):
+        # fixme: when model is reset, table view somehow forgets its hidden cols
+        # so as a workaround it is repeatedly hidden
+        self.tableView.setColumnHidden(3, True)
+       
+        header = self.tableView.horizontalHeader()
+        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
+        header.setResizeMode(1, QtGui.QHeaderView.Stretch)
+        header.setResizeMode(2, QtGui.QHeaderView.Stretch)
+            
     def create_dict(self, origname, transname):
         forig = open(origname, 'rU')
         ftrans = open(transname, 'rU')
@@ -248,21 +276,9 @@ class ApropyMainWindow(Ui_MainWindow):
         self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.tableView.setModel(self.filter_proxy_model)
-        self.tableView.setColumnHidden(3, True)
+        self.hide_last_col()
 
-        header = self.tableView.horizontalHeader()
-        header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
-        header.setResizeMode(1, QtGui.QHeaderView.Stretch)
-        header.setResizeMode(2, QtGui.QHeaderView.Stretch)
-        
-        
 
-def get_sizehint(default_x, default_y):
-    def sizeHint():
-        return QtCore.QSize(default_x, default_y)
-        
-    return sizeHint
-        
 if __name__ == "__main__":
     config = ConfigParser()
     origfname = 'msg_bundle.properties'
