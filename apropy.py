@@ -2,6 +2,7 @@ import sys
 import time
 import os
 import os.path
+import logging
 from collections import OrderedDict
 from ConfigParser import ConfigParser, DuplicateSectionError
 
@@ -19,6 +20,7 @@ VERSION_STR = "apropy v0.01"
 ININAME = 'apropy.ini'
 ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
+LOG_FNAME = 'apropy.log'
 
 def is_same_dir(first, second):
     # should be using os.path.samefile(path1, path2) under Unix...
@@ -35,7 +37,7 @@ def is_same_dir(first, second):
         pass
         
     rel1, rel2 = os.path.normpath(rel1), os.path.normpath(rel2)
-    print rel1, rel2
+    #print rel1, rel2
     return rel1 == rel2
 
 class ApropyMainWindow(Ui_MainWindow):
@@ -72,8 +74,9 @@ class ApropyMainWindow(Ui_MainWindow):
     def update_status_bar(self):
         orig_keycnt = len(self.origins)
         trans_keycnt = len(self.trans)
-        self.progressBar.setValue(trans_keycnt * 100 / orig_keycnt)
-        self.progressText.setText('%d / %d' % (trans_keycnt, orig_keycnt))
+        if orig_keycnt > 0:
+            self.progressBar.setValue(trans_keycnt * 100 / orig_keycnt)
+            self.progressText.setText('%d / %d' % (trans_keycnt, orig_keycnt))
 
     def tableKeyPress(self, event):
         ''' Key bindings are hacked so a TAB press on table does not go to next cell but
@@ -120,7 +123,7 @@ class ApropyMainWindow(Ui_MainWindow):
         self.tableView.keyPressEvent = self.tableKeyPress
         self.oldTransEditKeyPress = self.transEdit.keyPressEvent
         self.transEdit.keyPressEvent = self.transEditKeyPress
-        
+    
     def on_about(self):
         msgBox = QMessageBox()
         msgBox.setText(VERSION_STR)
@@ -130,15 +133,15 @@ class ApropyMainWindow(Ui_MainWindow):
     
     def on_save(self):
         if self.config.get_cleanup_keys():
-            print "Cleaning up and reordering translation keys before saving"
+            logger.info("Cleaning up and reordering translation keys before saving")
             self.cleanup_dict()
             
         fout = open(self.transfname, 'wb')
         count =propsave(fout, self.trans)
         fout.close()
-        print self.transfname, " saved:", count, 'items'
+        logger.info(self.transfname + ' saved: %d items' % count)
         
-    def ask_for_change(self):
+    def ask_for_basedir_change(self):
         msgBox = QMessageBox()
         msgBox.setText("Found a " + ORIG_BASENAME + " file in the translated file's directory.")
         msgBox.setInformativeText("Use that as a base file?")
@@ -152,39 +155,39 @@ class ApropyMainWindow(Ui_MainWindow):
                 
     def on_open(self):
         global workdir
-        print "Open"
         fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
                                     caption="cap", dir=workdir, filter="*.properties")
 
+        logger.info("Opening file: " + fullpath)
         old_transfname = self.transfname
         old_origfname = self.origfname
         
         if os.path.isfile(fullpath):
         
             if is_same_dir(os.path.dirname(fullpath), os.getcwd()):
-                print "File is in current work dir, keeping filename only"
+                logger.info("File is in current work dir, keeping filename only")
                 self.transfname = os.path.basename(fullpath)
                 new_origfname = ORIG_BASENAME
             else:
-                print "Translated file directory changed, trying to update original file path also"
-                self.transfname = fullpath
+                logger.info("Translated file directory changed, trying to update original file path also")
+                self.transfname = os.path.normpath(fullpath)
                 
                 new_origfname = os.path.join(os.path.dirname(fullpath), ORIG_BASENAME)
                                             
             if os.path.isfile(new_origfname) and not is_same_dir(new_origfname, self.origfname):
-                if self.ask_for_change():
-                    self.origfname = new_origfname
+                if self.ask_for_basedir_change():
+                    self.origfname = os.path.normpath(new_origfname)
             
             try:
                 self.create_dict(self.origfname, self.transfname)
                 self.update_status_bar()
                 self.tableView.scrollToTop()
             except Exception, e:
-                print "Exception hit:", e            
+                logger.error("Exception hit:" + str(e))
                 self.transfname = old_transfname
                 self.origfnaem = old_origfname
         else:
-            print "Selected item is not a file."
+            logger.info("Selected item is not a file.")
         
         if old_transfname != self.transfname:
             config_update_filenames(self.origfname, self.transfname)
@@ -198,8 +201,6 @@ class ApropyMainWindow(Ui_MainWindow):
         else:
             self.fill_model(include_translated=True)
             
-        print self.filter_proxy_model.rowCount()            
-
     def update_hidden_col(self, row):
         ''' Updates the hidden fourth column used for filtering (all texts together)
         :param topleft: model index for the row whose hidden column is to be updated
@@ -363,16 +364,16 @@ class ApropyMainWindow(Ui_MainWindow):
             self.origins = propread(forig)
             forig.close()
         except Exception, e:
-            print "Error opening original file: " + origname
-            print e
+            logger.error("Error opening original file: " + origname)
+            logger.error(str(e))
             
         try:
             ftrans = open(transname, 'rU')
             self.trans = propread(ftrans)
             ftrans.close()
         except Exception, e:
-            print "Error opening translated file: " + transname
-            print e
+            logger.error("Error opening translated file: " + transname)
+            logger.error(str(e))
 
         self.model = QtGui.QStandardItemModel(5, 3)
         self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
@@ -408,7 +409,7 @@ class MyConfig(ConfigParser, object):
             self.fname = fname
         with open(self.fname, 'wb') as configfile:
             self.write(configfile)
-            print "Saved config: ", self.fname
+            logger.info("Saved config: " + self.fname)
 
     def init_missing(self):
         was_missing = False
@@ -445,10 +446,16 @@ class MyConfig(ConfigParser, object):
             # see http://stackoverflow.com/a/21485083/501814
             self.set('options', 'cleanup_keys_on_save', 'True')
             was_missing = True
+
+        try:
+            self.get('options', 'log_to_file')
+        except:
+            self.set('options', 'log_to_file', 'False')
+            was_missing = True
             
         if was_missing:
-            print "Missing options filled in"
-        
+            logger.info("Missing options filled in")
+            
         return was_missing
 
     def get_origfname(self):  return self.get('files', 'orig')
@@ -457,8 +464,9 @@ class MyConfig(ConfigParser, object):
     def get_transfname(self): return self.get('files', 'trans')
     def set_transfname(self, value): self.set('files', 'trans', value)
     
+    # these params are not exposed, edit ini directly
     def get_cleanup_keys(self): return self.getboolean('options', 'cleanup_keys_on_save')
-    def set_cleanup_keys(self, value): self.setboolean('options', 'cleanup_keys_on_save', value)
+    def get_log_to_file(self): return self.getboolean('options', 'log_to_file')
 
 def config_update_filenames(new_orig, new_trans):
     config.set_origfname(new_orig)
@@ -468,13 +476,28 @@ def config_update_filenames(new_orig, new_trans):
 if __name__ == "__main__":
     config = MyConfig()
     workdir = '.'
+    
+    logger = logging.getLogger("apropy")
+    logger.setLevel(logging.DEBUG)
+    ch = logging.StreamHandler()
+    fmt = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
 
+    logger.info(VERSION_STR + " started")
+    
     if os.path.isfile(ININAME):
         config.load(ININAME)
     else:
-        print "Unable to read ini file, creating..."
+        logger.warn("Unable to read ini file, creating...")
         config.init_missing()
         config.save(ININAME)
+        
+    if config.get_log_to_file():
+        ch = logging.FileHandler(LOG_FNAME)
+        ch.setFormatter(fmt)
+        logger.addHandler(ch)
+        logger.info("Logging to " + LOG_FNAME)
 
     app = QApplication(sys.argv)
     window = QMainWindow()
