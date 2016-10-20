@@ -22,7 +22,14 @@
     </widget>
    </item>
    <item row="8" column="1">
-    <widget class="QPlainTextEdit" name="transEdit"/>
+    <widget class="QPlainTextEdit" name="transEdit">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>1</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
    </item>
    <item row="0" column="0">
     <widget class="QLineEdit" name="filterEdit">
@@ -57,7 +64,14 @@
     </layout>
    </item>
    <item row="8" column="0">
-    <widget class="QPlainTextEdit" name="origEdit"/>
+    <widget class="QPlainTextEdit" name="origEdit">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>1</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
    </item>
    <item row="9" column="0">
     <widget class="QLabel" name="label_2">
@@ -92,10 +106,24 @@
     </layout>
    </item>
    <item row="10" column="0" colspan="2">
-    <widget class="QPlainTextEdit" name="plainTextEdit"/>
+    <widget class="QPlainTextEdit" name="plainTextEdit">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>1</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
    </item>
    <item row="3" column="0" colspan="2">
-    <widget class="QTableView" name="tableView"/>
+    <widget class="QTableView" name="tableView">
+     <property name="sizePolicy">
+      <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+       <horstretch>0</horstretch>
+       <verstretch>4</verstretch>
+      </sizepolicy>
+     </property>
+    </widget>
    </item>
   </layout>
  </widget>

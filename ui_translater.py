@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_translater.ui'
 #
-# Created: Sun Oct 09 15:33:42 2016
+# Created: Mon Oct 10 20:26:22 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -19,6 +19,11 @@ class Ui_TranslateDialog(object):
         self.label.setObjectName("label")
         self.gridLayout.addWidget(self.label, 11, 0, 1, 1)
         self.transEdit = QtGui.QPlainTextEdit(TranslateDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.transEdit.sizePolicy().hasHeightForWidth())
+        self.transEdit.setSizePolicy(sizePolicy)
         self.transEdit.setObjectName("transEdit")
         self.gridLayout.addWidget(self.transEdit, 8, 1, 1, 1)
         self.filterEdit = QtGui.QLineEdit(TranslateDialog)
@@ -37,6 +42,11 @@ class Ui_TranslateDialog(object):
         self.horizontalLayout_2.addWidget(self.removeButton)
         self.gridLayout.addLayout(self.horizontalLayout_2, 5, 1, 1, 1)
         self.origEdit = QtGui.QPlainTextEdit(TranslateDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.origEdit.sizePolicy().hasHeightForWidth())
+        self.origEdit.setSizePolicy(sizePolicy)
         self.origEdit.setObjectName("origEdit")
         self.gridLayout.addWidget(self.origEdit, 8, 0, 1, 1)
         self.label_2 = QtGui.QLabel(TranslateDialog)
@@ -55,9 +65,19 @@ class Ui_TranslateDialog(object):
         self.horizontalLayout.addWidget(self.saveButton)
         self.gridLayout.addLayout(self.horizontalLayout, 0, 1, 1, 1)
         self.plainTextEdit = QtGui.QPlainTextEdit(TranslateDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(1)
+        sizePolicy.setHeightForWidth(self.plainTextEdit.sizePolicy().hasHeightForWidth())
+        self.plainTextEdit.setSizePolicy(sizePolicy)
         self.plainTextEdit.setObjectName("plainTextEdit")
         self.gridLayout.addWidget(self.plainTextEdit, 10, 0, 1, 2)
         self.tableView = QtGui.QTableView(TranslateDialog)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(4)
+        sizePolicy.setHeightForWidth(self.tableView.sizePolicy().hasHeightForWidth())
+        self.tableView.setSizePolicy(sizePolicy)
         self.tableView.setObjectName("tableView")
         self.gridLayout.addWidget(self.tableView, 3, 0, 1, 2)
 

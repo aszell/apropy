@@ -31,13 +31,15 @@ class TranslateDialog(Ui_TranslateDialog):
         self.model = QtGui.QStandardItemModel(5, 3)
         self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
 
-        for idx, tr in enumerate(self.trans.values()):
-            #print tr
+        for idx, tr in enumerate(self.origins.values()):
             item_key = QtGui.QStandardItem(tr.key)
             item_key.setFlags(item_key.flags() & ~QtCore.Qt.ItemIsEditable)
-            item_orig = QtGui.QStandardItem(self.origins[tr.key].trans)
+            item_orig = QtGui.QStandardItem(tr.trans)
             item_orig.setFlags(item_orig.flags() & ~QtCore.Qt.ItemIsEditable)
-            item_trans = QtGui.QStandardItem(tr.trans)
+            if tr.key in self.trans:
+                item_trans = QtGui.QStandardItem(self.trans[tr.key].trans)
+            else:
+                item_trans = QtGui.QStandardItem('')
 
             self.model.setItem(idx, 0, item_key)
             self.model.setItem(idx, 1, item_orig)
@@ -54,15 +56,7 @@ class TranslateDialog(Ui_TranslateDialog):
         header.setResizeMode(1, QtGui.QHeaderView.Stretch)
         header.setResizeMode(2, QtGui.QHeaderView.Stretch)
 
-
-        vwidth = self.tableView.verticalHeader().width()
-        hwidth = self.tableView.horizontalHeader().length()
-        swidth = self.tableView.style().pixelMetric(QtGui.QStyle.PM_ScrollBarExtent)
-        fwidth = self.tableView.frameWidth() * 2
-
-        #self.tableView.setFixedWidth(vwidth + hwidth + swidth + fwidth)
-
-if __name__ == "__main__":        
+if __name__ == "__main__":
     config = ConfigParser()
     try:
         config.read(ININAME)
