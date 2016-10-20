@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_mainwindow.ui'
 #
-# Created: Sat Oct 15 07:04:10 2016
+# Created: Wed Oct 19 18:14:57 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -105,6 +105,8 @@ class Ui_MainWindow(object):
         self.menubar.setObjectName("menubar")
         self.menu_File = QtGui.QMenu(self.menubar)
         self.menu_File.setObjectName("menu_File")
+        self.menu_Help = QtGui.QMenu(self.menubar)
+        self.menu_Help.setObjectName("menu_Help")
         MainWindow.setMenuBar(self.menubar)
         self.statusbar = QtGui.QStatusBar(MainWindow)
         self.statusbar.setObjectName("statusbar")
@@ -113,9 +115,13 @@ class Ui_MainWindow(object):
         self.action_Open.setObjectName("action_Open")
         self.action_Save = QtGui.QAction(MainWindow)
         self.action_Save.setObjectName("action_Save")
+        self.action_About = QtGui.QAction(MainWindow)
+        self.action_About.setObjectName("action_About")
         self.menu_File.addAction(self.action_Open)
         self.menu_File.addAction(self.action_Save)
+        self.menu_Help.addAction(self.action_About)
         self.menubar.addAction(self.menu_File.menuAction())
+        self.menubar.addAction(self.menu_Help.menuAction())
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
@@ -128,6 +134,8 @@ class Ui_MainWindow(object):
         self.label.setText(QtGui.QApplication.translate("MainWindow", "Filter (CTRL+F):", None, QtGui.QApplication.UnicodeUTF8))
         self.untransOnlyBox.setText(QtGui.QApplication.translate("MainWindow", "show &untranslated only", None, QtGui.QApplication.UnicodeUTF8))
         self.menu_File.setTitle(QtGui.QApplication.translate("MainWindow", "&File", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_Open.setText(QtGui.QApplication.translate("MainWindow", "&Open", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_Save.setText(QtGui.QApplication.translate("MainWindow", "&Save", None, QtGui.QApplication.UnicodeUTF8))
+        self.menu_Help.setTitle(QtGui.QApplication.translate("MainWindow", "&Help", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_Open.setText(QtGui.QApplication.translate("MainWindow", "&Open translated file", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_Save.setText(QtGui.QApplication.translate("MainWindow", "&Save translated file", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_About.setText(QtGui.QApplication.translate("MainWindow", "&About", None, QtGui.QApplication.UnicodeUTF8))
 

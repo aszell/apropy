@@ -14,6 +14,8 @@ from ui_mainwindow import Ui_MainWindow
 
 from prop import propread, propsave, TransItem
 
+VERSION_STR = "apropy v0.01"
+
 ININAME = 'apropy.ini'
 ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
@@ -101,6 +103,8 @@ class ApropyMainWindow(Ui_MainWindow):
         self.action_Open.setStatusTip('Open translation')
         self.action_Open.triggered.connect(self.on_open)
         
+        self.action_About.triggered.connect(self.on_about)
+        
         findShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+F"), self.window)
         findShortcut.activated.connect(self.on_find)
 
@@ -117,6 +121,13 @@ class ApropyMainWindow(Ui_MainWindow):
         self.oldTransEditKeyPress = self.transEdit.keyPressEvent
         self.transEdit.keyPressEvent = self.transEditKeyPress
         
+    def on_about(self):
+        msgBox = QMessageBox()
+        msgBox.setText(VERSION_STR)
+        msgBox.setStandardButtons(QMessageBox.Ok)
+        msgBox.setDefaultButton(QMessageBox.Ok)
+        msgBox.exec_()
+    
     def on_save(self):
         if self.config.get_cleanup_keys():
             print "Cleaning up and reordering translation keys before saving"
