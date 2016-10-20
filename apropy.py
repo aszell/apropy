@@ -8,43 +8,34 @@ from PySide import QtGui
 from PySide.QtCore import QTimer, QProcess, QUrl
 from PySide import QtCore
 
-from ui_translater import Ui_TranslateWidget
+from ui_mainwindow import Ui_MainWindow
 
 from prop import propread, propsave, TransItem
 
 ININAME = "translater.ini"
 
-class TranslateWidget(Ui_TranslateWidget):
-    def __init__(self, window, statusBar, origname, transname):
-        Ui_TranslateWidget.__init__(self)
-
-        self.window = window
-        self.statusBar = statusBar
+class ApropyMainWindow(Ui_MainWindow):
+    def __init__(self, window, origname, transname):
+        Ui_MainWindow.__init__(self)
 
         self.setupUi(window)
-
-        # replace tab behaviour
-        self.oldTableKeyPress = self.tableView.keyPressEvent
-        self.tableView.keyPressEvent = self.tableKeyPress
-        self.oldTransEditKeyPress = self.transEdit.keyPressEvent
-        self.transEdit.keyPressEvent = self.transEditKeyPress
-
+        self.window = window
         self.origfname = origname
         self.transfname = transname
         self.create_dict(origname, transname)
-
         self.setup_status_bar()
+        
         self.create_actions()
 
         self.tablerefresh_from_bottom = False
 
     def setup_status_bar(self):
-        self.statusBar.showMessage('Translated:')
+        self.window.statusBar().showMessage('Translated:')
 
         self.progressText = QtGui.QLabel('')
         self.progressBar = QtGui.QProgressBar()
-        self.statusBar.addPermanentWidget(self.progressText)
-        self.statusBar.addPermanentWidget(self.progressBar)
+        self.window.statusBar().addPermanentWidget(self.progressText)
+        self.window.statusBar().addPermanentWidget(self.progressBar)
 
         self.progressBar.setGeometry(30, 40, 200, 25)
 
@@ -73,10 +64,15 @@ class TranslateWidget(Ui_TranslateWidget):
             self.oldTransEditKeyPress(event)
 
     def create_actions(self):
-        self.saveButton.clicked.connect(self.on_save)
         self.model.dataChanged.connect(self.table_data_changed)
-        saveShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self.window)
-        saveShortcut.activated.connect(self.on_save)
+        
+        self.action_Save.setShortcut('Ctrl+S')
+        self.action_Save.setStatusTip('Save translated file')
+        self.action_Save.triggered.connect(self.on_save)
+        self.action_Open.setShortcut('Ctrl+O')
+        self.action_Open.setStatusTip('Open translation')
+        self.action_Open.triggered.connect(self.on_open)
+        
         findShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+F"), self.window)
         findShortcut.activated.connect(self.on_find)
 
@@ -87,11 +83,20 @@ class TranslateWidget(Ui_TranslateWidget):
 
         self.transEdit.textChanged.connect(self.bottom_data_changed)
 
+        # replace tab behaviour
+        self.oldTableKeyPress = self.tableView.keyPressEvent
+        self.tableView.keyPressEvent = self.tableKeyPress
+        self.oldTransEditKeyPress = self.transEdit.keyPressEvent
+        self.transEdit.keyPressEvent = self.transEditKeyPress
+        
     def on_save(self):
         # todo: save currently edited, but unfinished item as well on CTRL+S!
         fout = open(self.transfname, 'wb')
         propsave(fout, self.trans)
         print "Saved"
+        
+    def on_open(self):
+        print "Open"
 
     def on_find(self):
         self.filterEdit.setFocus()
@@ -145,7 +150,7 @@ class TranslateWidget(Ui_TranslateWidget):
 
             self.trans = newOrder
 
-        self.update_status_bar()
+        #self.update_status_bar()
 
     def bottom_data_changed(self):
         # the way I get to model item from filtered table row is obviously overcomplicated
@@ -239,6 +244,12 @@ class TranslateWidget(Ui_TranslateWidget):
         header.setResizeMode(1, QtGui.QHeaderView.Stretch)
         header.setResizeMode(2, QtGui.QHeaderView.Stretch)
 
+def get_sizehint(default_x, default_y):
+    def sizeHint():
+        return QtCore.QSize(default_x, default_y)
+        
+    return sizeHint
+        
 if __name__ == "__main__":
     config = ConfigParser()
     origfname = 'msg_bundle.properties'
@@ -264,11 +275,7 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     window = QMainWindow()
-    centralwidget = QWidget()
-    
-    ui = TranslateWidget(centralwidget, window.statusBar(), origfname, transfname)
-    window.setCentralWidget(centralwidget)
-    window.setFixedSize(1400,900)
+    awindow = ApropyMainWindow(window, origfname, transfname)
     window.show()
-        
+    
     sys.exit(app.exec_())
