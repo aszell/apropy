@@ -1,2 +1,3 @@
 # apropy
-A mini java translation editor for properties files.
+A mini Java translation editor for properties files, written in Python.
+("Apró" means very small in Hungarian.)
