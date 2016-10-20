@@ -32,6 +32,8 @@ class TranslateDialog(Ui_TranslateDialog):
         saveShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self.window)
         saveShortcut.activated.connect(self.on_save)
 
+        self.filterEdit.textChanged.connect(self.filter_proxy_model.setFilterFixedString)
+
     def on_save(self):
         fout = open(self.transfname, 'wb')
         propsave(fout, self.trans)
@@ -56,15 +58,20 @@ class TranslateDialog(Ui_TranslateDialog):
             else:
                 item_trans = QtGui.QStandardItem('')
 
+            item_all = QtGui.QStandardItem(' '.join([item_key.text(), item_orig.text(), item_trans.text()]))
+
             self.model.setItem(idx, 0, item_key)
             self.model.setItem(idx, 1, item_orig)
             self.model.setItem(idx, 2, item_trans)
+            self.model.setItem(idx, 3, item_all)
 
-        filter_proxy_model = QtGui.QSortFilterProxyModel()
-        filter_proxy_model.setSourceModel(self.model)
-        filter_proxy_model.setFilterKeyColumn(1) # third column
+        self.filter_proxy_model = QtGui.QSortFilterProxyModel()
+        self.filter_proxy_model.setSourceModel(self.model)
+        self.filter_proxy_model.setFilterKeyColumn(3)
+        self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
-        self.tableView.setModel(filter_proxy_model)
+        self.tableView.setModel(self.filter_proxy_model)
+        self.tableView.setColumnHidden(3, True)
 
         header = self.tableView.horizontalHeader()
         header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
