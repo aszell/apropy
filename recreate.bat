@@ -1,2 +1,2 @@
-pyside-uic -o ui_translater.py ui_translater.ui
+pyside-uic -o ui_mainwindow.py ui_mainwindow.ui
 pause
