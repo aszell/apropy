@@ -55,6 +55,8 @@ class ApropyMainWindow(Ui_MainWindow):
             switch between the detailed bottom editbox and table. '''
         if event.key() == QtCore.Qt.Key_Tab:
             event.ignore()
+        elif event.key() == QtCore.Qt.Key_Delete:
+            self.table_delete_translation()
         else:
             self.oldTableKeyPress(event)
 
@@ -170,21 +172,27 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.update_status_bar()
 
-    def bottom_data_changed(self):
-        # the way I get to model item from filtered table row is obviously overcomplicated
-        # fix it please...
-        self.tablerefresh_from_bottom = True
+    def get_selected_row(self):
+        # fixme: the way I get to model item from filtered table row is obviously overcomplicated
+
         selected = self.tableView.selectedIndexes()
         if selected: # if nothing selected, text gets lost?
             fp = self.filter_proxy_model
             model_idx = fp.mapToSource(fp.index(selected[0].row(), 0))
-            key = self.model.itemFromIndex(model_idx).text()
-            #self.update_translation(key, self.transEdit.toPlainText())
-            # refresh the other view of the same data
-            #print 'bott-updatetable'
-            #self.update_table(self.transEdit.toPlainText())
-            #print "Updating row", model_idx.row()
-            self.model.item(model_idx.row(), 2).setText(self.transEdit.toPlainText())
+            return model_idx.row()
+        else:
+            return None
+        
+    def table_delete_translation(self):
+        row = self.get_selected_row()
+        if row is not None:
+            self.model.item(row, 2).setText('')
+
+    def bottom_data_changed(self):
+        self.tablerefresh_from_bottom = True
+        row = self.get_selected_row()
+        if row is not None:
+            self.model.item(row, 2).setText(self.transEdit.toPlainText())
 
         self.tablerefresh_from_bottom = False
 
@@ -277,7 +285,6 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.tableView.setModel(self.filter_proxy_model)
         self.hide_last_col()
-
 
 if __name__ == "__main__":
     config = ConfigParser()
