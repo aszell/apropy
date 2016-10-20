@@ -1,10 +1,11 @@
 import sys
 import time
+import os
+import os.path
 from collections import OrderedDict
-
 from ConfigParser import ConfigParser, DuplicateSectionError
 
-from PySide.QtGui import QApplication, QMainWindow, QWidget, QDialog, QFileDialog, QTextCursor, QSystemTrayIcon, QIcon, QMenu, QAction, qApp, QCursor, QDesktopServices
+from PySide.QtGui import QApplication, QMainWindow, QWidget, QDialog, QFileDialog, QTextCursor, QSystemTrayIcon, QIcon, QMenu, QAction, qApp, QCursor, QDesktopServices, QMessageBox
 from PySide import QtGui
 from PySide.QtCore import QTimer, QProcess, QUrl
 from PySide import QtCore
@@ -13,7 +14,26 @@ from ui_mainwindow import Ui_MainWindow
 
 from prop import propread, propsave, TransItem
 
-ININAME = "translater.ini"
+ININAME = 'apropy.ini'
+ORIGFILE_BASENAME = 'msg_bundle.properties'
+
+def is_same_dir(first, second):
+    # should be using os.path.samefile(path1, path2) under Unix...
+    # should be making lower case on Windows
+    rel1, rel2 = first, second
+    try:
+        rel1 = os.path.relpath(first)
+    except:
+        pass
+        
+    try:
+        rel2 = os.path.relpath(second)
+    except:
+        pass
+        
+    rel1, rel2 = os.path.normpath(rel1), os.path.normpath(rel2)
+    print rel1, rel2
+    return rel1 == rel2
 
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, origname, transname):
@@ -100,6 +120,18 @@ class ApropyMainWindow(Ui_MainWindow):
         fout.close()
         print "Saved"
         
+    def ask_for_change(self):
+        msgBox = QMessageBox()
+        msgBox.setText("Found a " + ORIGFILE_BASENAME + " file in the translated file's directory.")
+        msgBox.setInformativeText("Use that as a base file?")
+        msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
+        msgBox.setDefaultButton(QMessageBox.Ok)
+        ret = msgBox.exec_()
+        if ret == QMessageBox.Ok:
+            return True
+        elif ret == QMessageBox.Cancel:
+            return False
+                
     def on_open(self):
         global workdir
         print "Open"
@@ -107,14 +139,36 @@ class ApropyMainWindow(Ui_MainWindow):
                                     caption="cap", dir=workdir, filter="*.properties")
 
         old_transfname = self.transfname
-        try:
-            self.transfname = fullpath
-            self.create_dict(self.origfname, self.transfname)
-            self.update_status_bar()
-            self.tableView.scrollToTop()
-        except Exception, e:
-            print "Exception hit:", e            
-            self.transfname = old_transfname
+        old_origfname = self.origfname
+        
+        if os.path.isfile(fullpath):
+        
+            if is_same_dir(os.path.dirname(fullpath), os.getcwd()):
+                print "File is in current work dir, keeping filename only"
+                self.transfname = os.path.basename(fullpath)
+            else:
+                print "Translated file directory changed, trying to update original file path also"
+                self.transfname = fullpath
+                
+            new_origfname = os.path.join(os.path.dirname(fullpath), 
+                                            ORIGFILE_BASENAME)
+                                            
+            if os.path.isfile(new_origfname) and not is_same_dir(new_origfname, self.origfname) and self.ask_for_change():
+                self.origfname = new_origfname
+                
+            try:
+                self.create_dict(self.origfname, self.transfname)
+                self.update_status_bar()
+                self.tableView.scrollToTop()
+            except Exception, e:
+                print "Exception hit:", e            
+                self.transfname = old_transfname
+                self.origfnaem = old_origfname
+        else:
+            print "Selected item is not a file."
+        
+        if old_transfname != self.transfname:
+            config_update_filenames(self.origfname, self.transfname)
         
     def on_find(self):
         self.filterEdit.setFocus()
@@ -285,27 +339,39 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.tableView.setModel(self.filter_proxy_model)
         self.hide_last_col()
+        
+def config_update_filenames(new_orig, new_trans):
+    global config
+    config.set('files', 'trans', new_trans)
+    config.set('files', 'orig', new_orig)
+    with open(ININAME, 'wb') as configfile:
+        config.write(configfile)
+        print "Stored new config"
 
 if __name__ == "__main__":
     config = ConfigParser()
-    origfname = 'msg_bundle.properties'
+    workdir = '.'
+    origfname = ORIGFILE_BASENAME
     transfname = 'msg_bundle_hu.properties'
-    try:
-        workdir = 'w:\\langer\\'
-        config.read(ININAME)
 
-        origfname  = config.get('trans', 'orig')
-        transfname = config.get('trans', 'trans')
+    # first argument may be the file to be translated
+    if sys.argv[1:]:
+        transfname = sys.argv[1]    
+    try:
+        config.read(ININAME)
+        
+        origfname  = config.get('files', 'orig')
+        transfname = config.get('files', 'trans')
     except Exception, e:
         try:
-            config.add_section("trans")
+            config.add_section("files")
             print "Unable to read ini file, creating"
         except DuplicateSectionError, e:
             has_ini = True
             print "Extending former ini file"
             
-        config.set('trans', 'orig', origfname)
-        config.set('trans', 'trans', 'msg_bundle_hu.properties')
+        config.set('files', 'orig', origfname)
+        config.set('files', 'trans', transfname)
 
         with open(ININAME, 'wb') as configfile:
             config.write(configfile)
