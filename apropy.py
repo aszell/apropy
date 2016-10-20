@@ -37,16 +37,18 @@ def is_same_dir(first, second):
     return rel1 == rel2
 
 class ApropyMainWindow(Ui_MainWindow):
-    def __init__(self, window, origname, transname):
+    def __init__(self, window, config):
         Ui_MainWindow.__init__(self)
+        
+        self.config = config
 
         self.setupUi(window)
         self.window = window
         
-        self.origfname = origname
-        self.transfname = transname
+        self.origfname = config.get_origfname()
+        self.transfname = config.get_transfname()
         
-        self.create_dict(origname, transname)
+        self.create_dict(self.origfname, self.transfname)
         self.setup_status_bar()
         
         self.create_actions()
@@ -211,16 +213,21 @@ class ApropyMainWindow(Ui_MainWindow):
 
     def update_translation(self, key, translation):
         if key in self.trans:
-            if not translation.strip(): # empty string
+            if not translation.strip(): 
+                # empty string entered -> delete translation entry
                 self.trans.pop(key)
             else:
                 self.trans[key].trans = translation                
         elif translation.strip():
             newkey = TransItem(key, self.origins[key].comment, translation)
             self.trans[key] = newkey
-            # put it in the same position as in the original translation
-            newOrder = OrderedDict()
-            for k in self.origins.keys():
+            print newkey
+            
+            if self.config.get_keep_keyorder():
+                print "Reordering"
+                # put it in the same position as in the original translation,
+                newOrder = OrderedDict()
+                for k in self.origins.keys():
                     if k in self.trans:
                         newOrder[k] = self.trans[k]
 
@@ -254,11 +261,17 @@ class ApropyMainWindow(Ui_MainWindow):
 
     def update_bottom(self, key):
         self.origEdit.setPlainText(self.origins[key].trans)
+
         if key in self.trans:
             self.transEdit.blockSignals(True)
             self.transEdit.setPlainText(self.trans[key].trans)
             self.transEdit.blockSignals(False)
-            self.commentEdit.setPlainText(self.trans[key].comment)
+            
+            # comments: take from translated file, but if that is empty, use original file's comments
+            if self.trans[key].comment.strip():
+                self.commentEdit.setPlainText(self.trans[key].comment)
+            elif key in self.origins:
+                self.commentEdit.setPlainText(self.origins[key].comment)
         else:
             self.transEdit.blockSignals(True)
             self.transEdit.setPlainText('')
@@ -277,11 +290,12 @@ class ApropyMainWindow(Ui_MainWindow):
         # beginResetModel - endResetModel is required to get the number of displayed table
         # rows be properly updated
         self.model.beginResetModel()
-        self.model.clear()
         self.model.blockSignals(True)
+        self.model.clear()
         
         row = 0
-        for idx, tr in enumerate(self.origins.values()):
+
+        for tr in self.origins.values():
             # skip lines with existing translation if 'untranslated only' selected
             if tr.key in self.trans and not include_translated:
                 continue
@@ -308,8 +322,12 @@ class ApropyMainWindow(Ui_MainWindow):
         # as the translation updates would be triggered on data change        
         self.model.blockSignals(False)
         
+        # endResetModel must be able to emit signals so filter gets updated
+        
         self.model.endResetModel()
+        
         self.hide_last_col()
+        self.tableView.scrollToTop()
 
     def hide_last_col(self):
         # fixme: when model is reset, table view somehow forgets its hidden cols
@@ -322,12 +340,23 @@ class ApropyMainWindow(Ui_MainWindow):
         header.setResizeMode(2, QtGui.QHeaderView.Stretch)
             
     def create_dict(self, origname, transname):
-        forig = open(origname, 'rU')
-        ftrans = open(transname, 'rU')
-        self.origins = propread(forig)
-        self.trans = propread(ftrans)
-        forig.close()
-        ftrans.close()
+        self.origins = OrderedDict()
+        self.trans = OrderedDict()
+        try:
+            forig = open(origname, 'rU')
+            self.origins = propread(forig)
+            forig.close()
+        except Exception, e:
+            print "Error opening original file: " + origname
+            print e
+            
+        try:
+            ftrans = open(transname, 'rU')
+            self.trans = propread(ftrans)
+            ftrans.close()
+        except Exception, e:
+            print "Error opening translated file: " + transname
+            print e
 
         self.model = QtGui.QStandardItemModel(5, 3)
         self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
@@ -340,47 +369,97 @@ class ApropyMainWindow(Ui_MainWindow):
         self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.tableView.setModel(self.filter_proxy_model)
+
+        #self.tableView.setSelectionBehaviour(self.tableView.SelectItems)
+        self.tableView.setSelectionMode(self.tableView.SingleSelection)
+
+        
         self.hide_last_col()
         
-def config_update_filenames(new_orig, new_trans):
-    global config
-    config.set('files', 'trans', new_trans)
-    config.set('files', 'orig', new_orig)
-    with open(ININAME, 'wb') as configfile:
-        config.write(configfile)
-        print "Stored new config"
+class MyConfig(ConfigParser, object):
+    def __init__(self):
+        ConfigParser.__init__(self)
+        self.fname = ININAME
 
-if __name__ == "__main__":
-    config = ConfigParser()
-    workdir = '.'
-    origfname = ORIGFILE_BASENAME
-    transfname = 'msg_bundle_hu.properties'
+    def load(self, ininame):
+        self.read(ininame)
+        self.fname = ininame
+        if self.init_missing():
+            self.save()
+    
+    def save(self, fname=None):
+        if fname is not None:
+            self.fname = fname
+        with open(self.fname, 'wb') as configfile:
+            self.write(configfile)
+            print "Saved config: ", self.fname
 
-    # first argument may be the file to be translated
-    if sys.argv[1:]:
-        transfname = sys.argv[1]    
-    try:
-        config.read(ININAME)
+    def init_missing(self):
+        was_missing = False
         
-        origfname  = config.get('files', 'orig')
-        transfname = config.get('files', 'trans')
-    except Exception, e:
         try:
-            config.add_section("files")
-            print "Unable to read ini file, creating"
+            self.add_section("files")
+            was_missing = True
         except DuplicateSectionError, e:
-            has_ini = True
-            print "Extending former ini file"
-            
-        config.set('files', 'orig', origfname)
-        config.set('files', 'trans', transfname)
+            pass
 
-        with open(ININAME, 'wb') as configfile:
-            config.write(configfile)
+        try:
+            self.add_section("options")
+            was_missing = True
+        except DuplicateSectionError, e:
+            pass
+            
+        try:
+            self.get('files', 'orig')
+        except:
+            self.set('files', 'orig', ORIG_BASENAME)
+            was_missing = True
+            
+        try:
+            self.get('files', 'trans')
+        except:
+            self.set('files', 'trans', TRANS_BASENAME)
+            was_missing = True
+
+        try:
+            self.get('options', 'keep_base_key_order')
+        except:
+            self.set('options', 'keep_base_key_order', True)
+            was_missing = True
+            
+        if was_missing:
+            print "Missing options filled in"
+        
+        return was_missing
+
+    def get_origfname(self):  return self.get('files', 'orig')
+    def set_origfname(self, value):  self.set('files', 'orig', value)
+    
+    def get_transfname(self): return self.get('files', 'trans')
+    def set_transfname(self, value): self.set('files', 'trans', value)
+    
+    def get_keep_keyorder(self): return self.getboolean('options', 'keep_base_key_order')
+    def set_keep_keyorder(self, value): self.setboolean('options', 'keep_base_key_order', value)
+
+def config_update_filenames(new_orig, new_trans):
+    config.set_origfname(new_orig)
+    config.set_transfname(new_trans)
+    config.save()
+    
+if __name__ == "__main__":
+    config = MyConfig()
+    workdir = '.'
+
+    if os.path.isfile(ININAME):
+        config.load(ININAME)
+    else:
+        print "Unable to read ini file, creating..."
+        config.init_missing()
+        config.save(ININAME)
 
     app = QApplication(sys.argv)
     window = QMainWindow()
-    awindow = ApropyMainWindow(window, origfname, transfname)
+    awindow = ApropyMainWindow(window, config)
     window.show()
     
     sys.exit(app.exec_())
