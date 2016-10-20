@@ -160,7 +160,7 @@ class TranslateWidget(Ui_TranslateWidget):
             # refresh the other view of the same data
             #print 'bott-updatetable'
             #self.update_table(self.transEdit.toPlainText())
-            print "Updating row", model_idx.row()
+            #print "Updating row", model_idx.row()
             self.model.item(model_idx.row(), 2).setText(self.transEdit.toPlainText())
 
         self.tablerefresh_from_bottom = False
