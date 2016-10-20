@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_translater.ui'
 #
-# Created: Mon Oct 10 20:26:22 2016
+# Created: Mon Oct 10 21:56:19 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -89,10 +89,10 @@ class Ui_TranslateDialog(object):
         self.label.setText(QtGui.QApplication.translate("TranslateDialog", "Statistics:", None, QtGui.QApplication.UnicodeUTF8))
         self.filterEdit.setText(QtGui.QApplication.translate("TranslateDialog", "Filter", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("TranslateDialog", "Translated:", None, QtGui.QApplication.UnicodeUTF8))
-        self.dirtyBox.setText(QtGui.QApplication.translate("TranslateDialog", "dirty", None, QtGui.QApplication.UnicodeUTF8))
-        self.removeButton.setText(QtGui.QApplication.translate("TranslateDialog", "Remove", None, QtGui.QApplication.UnicodeUTF8))
+        self.dirtyBox.setText(QtGui.QApplication.translate("TranslateDialog", "&dirty", None, QtGui.QApplication.UnicodeUTF8))
+        self.removeButton.setText(QtGui.QApplication.translate("TranslateDialog", "&Remove", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("TranslateDialog", "Comments:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("TranslateDialog", "Original:", None, QtGui.QApplication.UnicodeUTF8))
-        self.untransOnlyBox.setText(QtGui.QApplication.translate("TranslateDialog", "show untranslated only", None, QtGui.QApplication.UnicodeUTF8))
-        self.saveButton.setText(QtGui.QApplication.translate("TranslateDialog", "Save", None, QtGui.QApplication.UnicodeUTF8))
+        self.untransOnlyBox.setText(QtGui.QApplication.translate("TranslateDialog", "show &untranslated only", None, QtGui.QApplication.UnicodeUTF8))
+        self.saveButton.setText(QtGui.QApplication.translate("TranslateDialog", "&Save (CTRL+S)", None, QtGui.QApplication.UnicodeUTF8))
 

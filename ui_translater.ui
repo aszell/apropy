@@ -50,14 +50,14 @@
      <item>
       <widget class="QCheckBox" name="dirtyBox">
        <property name="text">
-        <string>dirty</string>
+        <string>&amp;dirty</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="removeButton">
        <property name="text">
-        <string>Remove</string>
+        <string>&amp;Remove</string>
        </property>
       </widget>
      </item>
@@ -92,14 +92,14 @@
      <item>
       <widget class="QCheckBox" name="untransOnlyBox">
        <property name="text">
-        <string>show untranslated only</string>
+        <string>show &amp;untranslated only</string>
        </property>
       </widget>
      </item>
      <item>
       <widget class="QPushButton" name="saveButton">
        <property name="text">
-        <string>Save</string>
+        <string>&amp;Save (CTRL+S)</string>
        </property>
       </widget>
      </item>
