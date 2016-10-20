@@ -1,4 +1,5 @@
 import sys
+from collections import OrderedDict
 
 from ConfigParser import ConfigParser, DuplicateSectionError
 
@@ -99,10 +100,20 @@ class TranslateWidget(Ui_TranslateWidget):
 
     def update_translation(self, key, translation):
         if key in self.trans:
-            self.trans[key].trans = translation
-        else:
+            if not translation.strip(): # empty string
+                self.trans.pop(key)
+            else:
+                self.trans[key].trans = translation                
+        elif translation.strip():
             newkey = TransItem(key, self.origins[key].comment, translation)
             self.trans[key] = newkey
+            # put it in the same position as in the original translation
+            newOrder = OrderedDict()
+            for k in self.origins.keys():
+                if k in self.trans:
+                    newOrder[k] = self.trans[k]
+
+            self.trans = newOrder
 
         self.update_status_bar()
 
