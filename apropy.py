@@ -15,7 +15,8 @@ from ui_mainwindow import Ui_MainWindow
 from prop import propread, propsave, TransItem
 
 ININAME = 'apropy.ini'
-ORIGFILE_BASENAME = 'msg_bundle.properties'
+ORIG_BASENAME = 'msg_bundle.properties'
+TRANS_BASENAME = 'msg_bundle_hu.properties'
 
 def is_same_dir(first, second):
     # should be using os.path.samefile(path1, path2) under Unix...
@@ -122,14 +123,14 @@ class ApropyMainWindow(Ui_MainWindow):
         
     def ask_for_change(self):
         msgBox = QMessageBox()
-        msgBox.setText("Found a " + ORIGFILE_BASENAME + " file in the translated file's directory.")
+        msgBox.setText("Found a " + ORIG_BASENAME + " file in the translated file's directory.")
         msgBox.setInformativeText("Use that as a base file?")
-        msgBox.setStandardButtons(QMessageBox.Ok | QMessageBox.Cancel)
-        msgBox.setDefaultButton(QMessageBox.Ok)
+        msgBox.setStandardButtons(QMessageBox.Yes | QMessageBox.No)
+        msgBox.setDefaultButton(QMessageBox.Yes)
         ret = msgBox.exec_()
-        if ret == QMessageBox.Ok:
+        if ret == QMessageBox.Yes:
             return True
-        elif ret == QMessageBox.Cancel:
+        elif ret == QMessageBox.No:
             return False
                 
     def on_open(self):
@@ -146,16 +147,17 @@ class ApropyMainWindow(Ui_MainWindow):
             if is_same_dir(os.path.dirname(fullpath), os.getcwd()):
                 print "File is in current work dir, keeping filename only"
                 self.transfname = os.path.basename(fullpath)
+                new_origfname = ORIG_BASENAME
             else:
                 print "Translated file directory changed, trying to update original file path also"
                 self.transfname = fullpath
                 
-            new_origfname = os.path.join(os.path.dirname(fullpath), 
-                                            ORIGFILE_BASENAME)
+                new_origfname = os.path.join(os.path.dirname(fullpath), ORIG_BASENAME)
                                             
-            if os.path.isfile(new_origfname) and not is_same_dir(new_origfname, self.origfname) and self.ask_for_change():
-                self.origfname = new_origfname
-                
+            if os.path.isfile(new_origfname) and not is_same_dir(new_origfname, self.origfname):
+                if self.ask_for_change():
+                    self.origfname = new_origfname
+            
             try:
                 self.create_dict(self.origfname, self.transfname)
                 self.update_status_bar()
@@ -219,10 +221,10 @@ class ApropyMainWindow(Ui_MainWindow):
             # put it in the same position as in the original translation
             newOrder = OrderedDict()
             for k in self.origins.keys():
-                if k in self.trans:
-                    newOrder[k] = self.trans[k]
+                    if k in self.trans:
+                        newOrder[k] = self.trans[k]
 
-            self.trans = newOrder
+                self.trans = newOrder
 
         self.update_status_bar()
 
