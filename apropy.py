@@ -116,9 +116,9 @@ class ApropyMainWindow(Ui_MainWindow):
         
     def on_save(self):
         fout = open(self.transfname, 'wb')
-        propsave(fout, self.trans)
+        count =propsave(fout, self.trans)
         fout.close()
-        print "Saved"
+        print self.transfname, " saved:", count, 'items'
         
     def ask_for_change(self):
         msgBox = QMessageBox()

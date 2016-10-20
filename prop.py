@@ -83,10 +83,13 @@ def propread(fhnd):
     return tdict
     
 def propsave(fhnd, propdict):
+    cnt = 0
     for key, item in propdict.items():
         fhnd.write(item.comment)
         outstr = item.key + '=' + item.trans
         fhnd.write(from_unicode(outstr) + '\n')
+        cnt += 1
+    return cnt
 
 if __name__ == "__main__":
     #with open('msg_bundle_hu.properties.orig', 'rU') as fin:
