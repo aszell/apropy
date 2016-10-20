@@ -26,18 +26,83 @@ class TranslateDialog(Ui_TranslateDialog):
 
         self.create_actions()
 
+        self.tablerefresh_from_bottom = False
+
     def create_actions(self):
         self.saveButton.clicked.connect(self.on_save)
-        self.model.dataChanged.connect(self.data_changed)
+        self.model.dataChanged.connect(self.table_data_changed)
         saveShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self.window)
         saveShortcut.activated.connect(self.on_save)
 
         self.filterEdit.textChanged.connect(self.filter_proxy_model.setFilterFixedString)
+        selMode = self.tableView.selectionModel()
+        selMode.selectionChanged.connect(self.on_sel_changed)
+
+        self.transEdit.textChanged.connect(self.bottom_data_changed)
 
     def on_save(self):
+        # todo: save currently edited, but unfinished item as well!
         fout = open(self.transfname, 'wb')
         propsave(fout, self.trans)
         print "Saved"
+
+    def table_data_changed(self, topleft, bottomright):
+        print "table"
+        key = self.model.item(topleft.row(), 0).text()
+        translation = self.model.item(topleft.row(), 2).text()
+        self.update_translation(key, translation)
+
+        # refresh the other view of the same data
+        if not self.tablerefresh_from_bottom:
+            self.transEdit.blockSignals(True)
+            self.update_bottom(key)
+            self.transEdit.blockSignals(False)
+
+    def update_translation(self, key, translation):
+        if key in self.trans:
+            self.trans[key].trans = translation
+        else:
+            newkey = TransItem(key, self.origins[key].comment, translation)
+            self.trans[key] = newkey
+
+    def bottom_data_changed(self):
+        print "bottom"
+        self.tablerefresh_from_bottom = True
+        selected = self.tableView.selectedIndexes()
+        if selected: # if nothing selected, text gets lost?
+            key = self.model.item(selected[0].row(), 0).text()
+            #self.data_changed(selected[0], selected[0])
+            self.update_translation(key, self.transEdit.toPlainText())
+            # refresh the other view of the same data
+            #self.model.blockSignals(True)
+            self.update_table(self.transEdit.toPlainText())
+            #self.model.blockSignals(False)
+
+        self.tablerefresh_from_bottom = False
+
+    def update_bottom(self, key):
+        self.origEdit.setPlainText(self.origins[key].trans)
+        if key in self.trans:
+            self.transEdit.blockSignals(True)
+            self.transEdit.setPlainText(self.trans[key].trans)
+            self.transEdit.blockSignals(False)
+            self.commentEdit.setPlainText(self.trans[key].comment)
+        else:
+            self.transEdit.blockSignals(True)
+            self.transEdit.setPlainText('')
+            self.transEdit.blockSignals(False)
+            self.commentEdit.setPlainText(self.origins[key].comment)
+
+    def update_table(self, translation):
+        print 'tableup'
+        selected = self.tableView.selectedIndexes()
+        self.model.item(selected[0].row(), 2).setText(translation)
+
+    def on_sel_changed(self, topleft, bottomright):
+        modelindex = topleft.indexes()[0]
+        keyindex = self.filter_proxy_model.index(modelindex.row(), 0)
+        key = keyindex.data()
+        self.update_bottom(key)
 
     def fill_dict(self, origname, transname):
         forig = open(origname, 'rU')
@@ -73,21 +138,15 @@ class TranslateDialog(Ui_TranslateDialog):
         self.tableView.setModel(self.filter_proxy_model)
         self.tableView.setColumnHidden(3, True)
 
+        #print dir(self.tableView)
+        #funcs = dir(self.tableView)
+        #for f in funcs:
+        #    print f
+
         header = self.tableView.horizontalHeader()
         header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(1, QtGui.QHeaderView.Stretch)
         header.setResizeMode(2, QtGui.QHeaderView.Stretch)
-
-    def data_changed(self, topleft, bottomright):
-        key = self.model.item(topleft.row(), 0).text()
-        if key in self.trans:
-            self.trans[key].trans = self.model.item(topleft.row(), 2).text()
-        else:
-            newkey = TransItem(key, self.origins[key].comment, self.model.item(topleft.row(), 2).text())
-            #print newkey
-            #print len(self.trans)
-            self.trans[key] = newkey
-            #print len(self.trans)
 
 if __name__ == "__main__":
     config = ConfigParser()

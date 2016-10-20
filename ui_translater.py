@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_translater.ui'
 #
-# Created: Mon Oct 10 21:56:19 2016
+# Created: Tue Oct 11 18:59:14 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -27,6 +27,7 @@ class Ui_TranslateDialog(object):
         self.transEdit.setObjectName("transEdit")
         self.gridLayout.addWidget(self.transEdit, 8, 1, 1, 1)
         self.filterEdit = QtGui.QLineEdit(TranslateDialog)
+        self.filterEdit.setText("")
         self.filterEdit.setObjectName("filterEdit")
         self.gridLayout.addWidget(self.filterEdit, 0, 0, 1, 1)
         self.horizontalLayout_2 = QtGui.QHBoxLayout()
@@ -34,12 +35,6 @@ class Ui_TranslateDialog(object):
         self.label_4 = QtGui.QLabel(TranslateDialog)
         self.label_4.setObjectName("label_4")
         self.horizontalLayout_2.addWidget(self.label_4)
-        self.dirtyBox = QtGui.QCheckBox(TranslateDialog)
-        self.dirtyBox.setObjectName("dirtyBox")
-        self.horizontalLayout_2.addWidget(self.dirtyBox)
-        self.removeButton = QtGui.QPushButton(TranslateDialog)
-        self.removeButton.setObjectName("removeButton")
-        self.horizontalLayout_2.addWidget(self.removeButton)
         self.gridLayout.addLayout(self.horizontalLayout_2, 5, 1, 1, 1)
         self.origEdit = QtGui.QPlainTextEdit(TranslateDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
@@ -47,6 +42,7 @@ class Ui_TranslateDialog(object):
         sizePolicy.setVerticalStretch(1)
         sizePolicy.setHeightForWidth(self.origEdit.sizePolicy().hasHeightForWidth())
         self.origEdit.setSizePolicy(sizePolicy)
+        self.origEdit.setReadOnly(True)
         self.origEdit.setObjectName("origEdit")
         self.gridLayout.addWidget(self.origEdit, 8, 0, 1, 1)
         self.label_2 = QtGui.QLabel(TranslateDialog)
@@ -64,14 +60,15 @@ class Ui_TranslateDialog(object):
         self.saveButton.setObjectName("saveButton")
         self.horizontalLayout.addWidget(self.saveButton)
         self.gridLayout.addLayout(self.horizontalLayout, 0, 1, 1, 1)
-        self.plainTextEdit = QtGui.QPlainTextEdit(TranslateDialog)
+        self.commentEdit = QtGui.QPlainTextEdit(TranslateDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
         sizePolicy.setVerticalStretch(1)
-        sizePolicy.setHeightForWidth(self.plainTextEdit.sizePolicy().hasHeightForWidth())
-        self.plainTextEdit.setSizePolicy(sizePolicy)
-        self.plainTextEdit.setObjectName("plainTextEdit")
-        self.gridLayout.addWidget(self.plainTextEdit, 10, 0, 1, 2)
+        sizePolicy.setHeightForWidth(self.commentEdit.sizePolicy().hasHeightForWidth())
+        self.commentEdit.setSizePolicy(sizePolicy)
+        self.commentEdit.setReadOnly(True)
+        self.commentEdit.setObjectName("commentEdit")
+        self.gridLayout.addWidget(self.commentEdit, 10, 0, 1, 2)
         self.tableView = QtGui.QTableView(TranslateDialog)
         sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
         sizePolicy.setHorizontalStretch(0)
@@ -87,10 +84,7 @@ class Ui_TranslateDialog(object):
     def retranslateUi(self, TranslateDialog):
         TranslateDialog.setWindowTitle(QtGui.QApplication.translate("TranslateDialog", "Translation", None, QtGui.QApplication.UnicodeUTF8))
         self.label.setText(QtGui.QApplication.translate("TranslateDialog", "Statistics:", None, QtGui.QApplication.UnicodeUTF8))
-        self.filterEdit.setText(QtGui.QApplication.translate("TranslateDialog", "Filter", None, QtGui.QApplication.UnicodeUTF8))
         self.label_4.setText(QtGui.QApplication.translate("TranslateDialog", "Translated:", None, QtGui.QApplication.UnicodeUTF8))
-        self.dirtyBox.setText(QtGui.QApplication.translate("TranslateDialog", "&dirty", None, QtGui.QApplication.UnicodeUTF8))
-        self.removeButton.setText(QtGui.QApplication.translate("TranslateDialog", "&Remove", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("TranslateDialog", "Comments:", None, QtGui.QApplication.UnicodeUTF8))
         self.label_3.setText(QtGui.QApplication.translate("TranslateDialog", "Original:", None, QtGui.QApplication.UnicodeUTF8))
         self.untransOnlyBox.setText(QtGui.QApplication.translate("TranslateDialog", "show &untranslated only", None, QtGui.QApplication.UnicodeUTF8))
