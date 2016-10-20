@@ -2,23 +2,29 @@ import sys
 
 from ConfigParser import ConfigParser, DuplicateSectionError
 
-from PySide.QtGui import QApplication, QMainWindow, QDialog, QFileDialog, QTextCursor, QSystemTrayIcon, QIcon, QMenu, QAction, qApp, QCursor, QDesktopServices
+from PySide.QtGui import QApplication, QMainWindow, QWidget, QDialog, QFileDialog, QTextCursor, QSystemTrayIcon, QIcon, QMenu, QAction, qApp, QCursor, QDesktopServices
 from PySide import QtGui
 from PySide.QtCore import QTimer, QProcess, QUrl
 from PySide import QtCore
 
-from ui_translater import Ui_TranslateDialog
+from ui_translater import Ui_TranslateWidget
 
 from prop import propread, propsave, TransItem
 
 ININAME = "translater.ini"
 
-class TranslateDialog(Ui_TranslateDialog):
+class TranslateWidget(Ui_TranslateWidget):
     def __init__(self, window, origname, transname):
-        Ui_TranslateDialog.__init__(self)
+        Ui_TranslateWidget.__init__(self)
         
         self.window = window
         self.setupUi(window)
+
+        # replace tab behaviour
+        self.oldTableKeyPress = self.tableView.keyPressEvent
+        self.tableView.keyPressEvent = self.tableKeyPress
+        self.oldTransEditKeyPress = self.transEdit.keyPressEvent
+        self.transEdit.keyPressEvent = self.transEditKeyPress
 
         self.origfname = origname
         self.transfname = transname
@@ -28,11 +34,25 @@ class TranslateDialog(Ui_TranslateDialog):
 
         self.tablerefresh_from_bottom = False
 
+    def tableKeyPress(self, event):
+        if event.key() == QtCore.Qt.Key_Tab:
+            event.ignore()
+        else:
+            self.oldTableKeyPress(event)
+
+    def transEditKeyPress(self, event):
+        if event.key() == QtCore.Qt.Key_Tab:
+            event.ignore()
+        else:
+            self.oldTransEditKeyPress(event)
+
     def create_actions(self):
         self.saveButton.clicked.connect(self.on_save)
         self.model.dataChanged.connect(self.table_data_changed)
         saveShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+S"), self.window)
         saveShortcut.activated.connect(self.on_save)
+        findShortcut = QtGui.QShortcut(QtGui.QKeySequence("Ctrl+F"), self.window)
+        findShortcut.activated.connect(self.on_find)
 
         self.filterEdit.textChanged.connect(self.filter_proxy_model.setFilterFixedString)
         selMode = self.tableView.selectionModel()
@@ -45,6 +65,9 @@ class TranslateDialog(Ui_TranslateDialog):
         fout = open(self.transfname, 'wb')
         propsave(fout, self.trans)
         print "Saved"
+
+    def on_find(self):
+        self.filterEdit.setFocus()
 
     def table_data_changed(self, topleft, bottomright):
         print "table"
@@ -172,9 +195,12 @@ if __name__ == "__main__":
             config.write(configfile)
 
     app = QApplication(sys.argv)
-    window = QDialog()
+    window = QMainWindow()
+    centralwidget = QWidget()
     
-    ui = TranslateDialog(window, origfname, transfname)
+    ui = TranslateWidget(centralwidget, origfname, transfname)
+    window.setCentralWidget(centralwidget)
+    window.setFixedSize(1400,900)
     window.show()
         
     sys.exit(app.exec_())
