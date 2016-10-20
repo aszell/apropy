@@ -20,8 +20,10 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.setupUi(window)
         self.window = window
+        
         self.origfname = origname
         self.transfname = transname
+        
         self.create_dict(origname, transname)
         self.setup_status_bar()
         
@@ -93,10 +95,17 @@ class ApropyMainWindow(Ui_MainWindow):
         # todo: save currently edited, but unfinished item as well on CTRL+S!
         fout = open(self.transfname, 'wb')
         propsave(fout, self.trans)
+        fout.close()
         print "Saved"
         
     def on_open(self):
+        global workdir
         print "Open"
+        fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
+                                    caption="cap", dir=workdir, filter="*.properties")
+                                    
+        self.transfname = fullpath
+        self.create_dict(self.origfname, self.transfname)
 
     def on_find(self):
         self.filterEdit.setFocus()
@@ -225,6 +234,8 @@ class ApropyMainWindow(Ui_MainWindow):
         ftrans = open(transname, 'rU')
         self.origins = propread(forig)
         self.trans = propread(ftrans)
+        forig.close()
+        ftrans.close()
 
         self.model = QtGui.QStandardItemModel(5, 3)
         self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
@@ -243,6 +254,8 @@ class ApropyMainWindow(Ui_MainWindow):
         header.setResizeMode(0, QtGui.QHeaderView.ResizeToContents)
         header.setResizeMode(1, QtGui.QHeaderView.Stretch)
         header.setResizeMode(2, QtGui.QHeaderView.Stretch)
+        
+        
 
 def get_sizehint(default_x, default_y):
     def sizeHint():
@@ -255,6 +268,7 @@ if __name__ == "__main__":
     origfname = 'msg_bundle.properties'
     transfname = 'msg_bundle_hu.properties'
     try:
+        workdir = 'w:\\langer\\'
         config.read(ININAME)
 
         origfname  = config.get('trans', 'orig')
