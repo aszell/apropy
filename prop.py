@@ -46,7 +46,15 @@ def break_key(st):
     keyword = twoparts[0].strip()
     trans = twoparts[1].rstrip('\n')
     return keyword, trans
-    
+
+def remove_wrong_spaces(st):
+    # mixed NUL + space to single space
+    newst = st.replace("\x00 ", " ")
+    newst = newst.replace(" \x00", " ")
+    # single zeros to spaces
+    newst = newst.replace("\x00", " ")
+    return newst
+
 def propread(fhnd):
     ''' Return an ordered dictionary with key, comments, translation pairs.
         Properly process multiline comments and translations, and parse unicode strings '''
@@ -60,6 +68,7 @@ def propread(fhnd):
 
     for l in fhnd:
         l = to_unicode(l)
+        l = remove_wrong_spaces(l)
         if state == MULTILINE:
             if not ismultiline(l):
                 state = COMMENTS
@@ -93,12 +102,8 @@ def propsave(fhnd, propdict):
 
 if __name__ == "__main__":
     #with open('msg_bundle_hu.properties.orig', 'rU') as fin:
-    with open('msg_bundle_hu.properties', 'rU') as fin:
+    with open('msg_bundle_ru.properties', 'rU') as fin:
         items = propread(fin)
-
-    print items['Standings']
-    #print items['AICasual'].trans.decode('unicode-escape')
-    #print items['AICasual'].trans.decode('unicode-escape').encode('unicode-escape')
 
     with open('res', 'wb') as fout:
         propsave(fout, items)
