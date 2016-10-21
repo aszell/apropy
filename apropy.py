@@ -6,10 +6,8 @@ import logging
 from collections import OrderedDict
 from ConfigParser import ConfigParser, DuplicateSectionError
 
-from PySide.QtGui import QApplication, QMainWindow, QWidget, QDialog, QFileDialog, QTextCursor, QSystemTrayIcon, QIcon, QMenu, QAction, qApp, QCursor, QDesktopServices, QMessageBox
-from PySide import QtGui
-from PySide.QtCore import QTimer, QProcess, QUrl
-from PySide import QtCore
+from PySide.QtGui import QApplication, QMainWindow, QFileDialog, QAction, QMessageBox
+from PySide import QtGui, QtCore
 
 from ui_mainwindow import Ui_MainWindow
 
