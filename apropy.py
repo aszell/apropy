@@ -33,7 +33,12 @@ class ApropyMainWindow(Ui_MainWindow):
         
         self.origfname = config.get_origfname()
         self.transfname = config.get_transfname()
-        
+
+        # filter and model will be created only once
+        self.filter_proxy_model = QtGui.QSortFilterProxyModel()
+        self.model = QtGui.QStandardItemModel(5, 3)
+        self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
+
         self.create_dict(self.origfname, self.transfname)
         self.setup_status_bar()
         
@@ -79,7 +84,7 @@ class ApropyMainWindow(Ui_MainWindow):
             self.oldTransEditKeyPress(event)
 
     def create_actions(self):
-        self.model.dataChanged.connect(self.table_data_changed)
+        self.model.dataChanged.connect(self.on_table_data_changed)
         
         self.action_Save.setShortcut('Ctrl+S')
         self.action_Save.setStatusTip('Save translated file')
@@ -98,7 +103,7 @@ class ApropyMainWindow(Ui_MainWindow):
         selMode = self.tableView.selectionModel()
         selMode.selectionChanged.connect(self.on_sel_changed)
 
-        self.transEdit.textChanged.connect(self.bottom_data_changed)
+        self.transEdit.textChanged.connect(self.on_bottom_data_changed)
 
         # replace tab behaviour
         self.oldTableKeyPress = self.tableView.keyPressEvent
@@ -197,7 +202,7 @@ class ApropyMainWindow(Ui_MainWindow):
         self.model.setItem(row, 3, item_all)
         self.model.blockSignals(signalsBlocked)
 
-    def table_data_changed(self, topleft, bottomright):
+    def on_table_data_changed(self, topleft, bottomright):
         key = self.model.item(topleft.row(), 0).text()
         translation = self.model.item(topleft.row(), 2).text()
         self.update_translation(key, translation)
@@ -250,7 +255,7 @@ class ApropyMainWindow(Ui_MainWindow):
         if row is not None:
             self.model.item(row, 2).setText('')
 
-    def bottom_data_changed(self):
+    def on_bottom_data_changed(self):
         self.tablerefresh_from_bottom = True
         row = self.get_selected_row()
         if row is not None:
@@ -357,22 +362,17 @@ class ApropyMainWindow(Ui_MainWindow):
             logger.error("Error opening translated file: " + transname)
             logger.error(str(e))
 
-        self.model = QtGui.QStandardItemModel(5, 3)
-        self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
-
         self.fill_model()
 
-        self.filter_proxy_model = QtGui.QSortFilterProxyModel()
         self.filter_proxy_model.setSourceModel(self.model)
         self.filter_proxy_model.setFilterKeyColumn(3)
         self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
 
         self.tableView.setModel(self.filter_proxy_model)
 
-        #self.tableView.setSelectionBehaviour(self.tableView.SelectItems)
+        #self.tableView.setSelectionBehavior(self.tableView.SelectRows)
         self.tableView.setSelectionMode(self.tableView.SingleSelection)
-
-        
+                
         self.hide_last_col()
         
 class MyConfig(ConfigParser, object):
