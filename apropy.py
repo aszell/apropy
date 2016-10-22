@@ -29,7 +29,6 @@ class TableDelegate(QtGui.QStyledItemDelegate):
     with a shortcut. (Otherwise the currently edited line is not saved just if Enter is 
     pressed before CTRL+S.)
     '''
-    #openEditor = QtCore.Signal()
 
     def __init__(self, parent=None):
         super(TableDelegate, self).__init__(parent)
@@ -37,7 +36,6 @@ class TableDelegate(QtGui.QStyledItemDelegate):
         self.is_edited = False
         
     def createEditor(self, parent, option, index):
-        #self.openEditor.emit()
         self.editor = QtGui.QLineEdit(parent)
         self.is_edited = True
         return self.editor
@@ -49,7 +47,6 @@ class TableDelegate(QtGui.QStyledItemDelegate):
         return self.is_edited
     
     def stopEditing(self):
-        print "Stop editing"
         self.editor.clearFocus()
         
 class ApropyMainWindow(Ui_MainWindow):
@@ -163,19 +160,7 @@ class ApropyMainWindow(Ui_MainWindow):
         msgBox.exec_()
     
     def on_save(self):
-        '''
         # Terminate ongoing edits of table to get edited data into model (in case CTRL+S pressed)
-        # !!! Does not work properly, because when table cell is edited, it's a separate editor and 
-        # window is active, focus is lost - can't determine whether tableview or something else is 
-        # focused
-        active = self.tableView.isActiveWindow() # should be focus test instead
-            
-        if active:
-            print "Active", self.tableView.hasFocus()
-            self.tableView.setDisabled( True );
-            self.tableView.setDisabled( False );
-            self.tableView.setFocus()
-        '''
         if self.tableEditor.isEdited():
             self.tableEditor.stopEditing()
             self.tableView.setFocus()
