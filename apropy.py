@@ -20,6 +20,38 @@ ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
 LOG_FNAME = 'apropy.log'
 
+class TableDelegate(QtGui.QStyledItemDelegate):
+    ''' 
+    Custom tableView edit delegate created to properly follow the state of table view edits. 
+    There were lots of other attempts but this one seems to be the only stable
+    which can tell whether the table view is currently edited, and let me close 
+    the editor so the model gets the currently edited data when save is triggered
+    with a shortcut. (Otherwise the currently edited line is not saved just if Enter is 
+    pressed before CTRL+S.)
+    '''
+    #openEditor = QtCore.Signal()
+
+    def __init__(self, parent=None):
+        super(TableDelegate, self).__init__(parent)
+        self.closeEditor.connect(self.editorClosed)
+        self.is_edited = False
+        
+    def createEditor(self, parent, option, index):
+        #self.openEditor.emit()
+        self.editor = QtGui.QLineEdit(parent)
+        self.is_edited = True
+        return self.editor
+    
+    def editorClosed(self):
+        self.is_edited = False
+        
+    def isEdited(self):
+        return self.is_edited
+    
+    def stopEditing(self):
+        print "Stop editing"
+        self.editor.clearFocus()
+        
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
         Ui_MainWindow.__init__(self)
@@ -48,6 +80,9 @@ class ApropyMainWindow(Ui_MainWindow):
         self.filter_proxy_model.setSourceModel(self.model)
         self.filter_proxy_model.setFilterKeyColumn(3)
         self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.tableEditor = TableDelegate()
+        self.tableView.setItemDelegate(self.tableEditor)
 
         self.tableView.setModel(self.filter_proxy_model)
 
@@ -128,6 +163,23 @@ class ApropyMainWindow(Ui_MainWindow):
         msgBox.exec_()
     
     def on_save(self):
+        '''
+        # Terminate ongoing edits of table to get edited data into model (in case CTRL+S pressed)
+        # !!! Does not work properly, because when table cell is edited, it's a separate editor and 
+        # window is active, focus is lost - can't determine whether tableview or something else is 
+        # focused
+        active = self.tableView.isActiveWindow() # should be focus test instead
+            
+        if active:
+            print "Active", self.tableView.hasFocus()
+            self.tableView.setDisabled( True );
+            self.tableView.setDisabled( False );
+            self.tableView.setFocus()
+        '''
+        if self.tableEditor.isEdited():
+            self.tableEditor.stopEditing()
+            self.tableView.setFocus()
+        
         if self.config.get_cleanup_keys():
             logger.info("Cleaning up and reordering translation keys before saving")
             self.cleanup_dict()
