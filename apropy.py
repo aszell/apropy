@@ -32,17 +32,28 @@ class ApropyMainWindow(Ui_MainWindow):
         self.origfname = config.get_origfname()
         self.transfname = config.get_transfname()
 
-        # filter and model will be created only once
-        self.filter_proxy_model = QtGui.QSortFilterProxyModel()
-        self.model = QtGui.QStandardItemModel(5, 3)
-        self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
-
-        self.create_dict(self.origfname, self.transfname)
+        self.setup_tableview()
+        self.load_dict(self.origfname, self.transfname)
         self.setup_status_bar()
         
         self.create_actions()
 
         self.tablerefresh_from_bottom = False
+
+    def setup_tableview(self):
+        # filter and model will be created only once
+        self.model = QtGui.QStandardItemModel(5, 3)
+        self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
+        self.filter_proxy_model = QtGui.QSortFilterProxyModel()
+        self.filter_proxy_model.setSourceModel(self.model)
+        self.filter_proxy_model.setFilterKeyColumn(3)
+        self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
+
+        self.tableView.setModel(self.filter_proxy_model)
+
+        #self.tableView.setSelectionBehavior(self.tableView.SelectRows)
+        self.tableView.setSelectionMode(self.tableView.SingleSelection)
+        self.hide_last_col()
 
     def setup_status_bar(self):
         self.window.statusBar().showMessage('Translated:')
@@ -164,7 +175,7 @@ class ApropyMainWindow(Ui_MainWindow):
                     self.origfname = os.path.normpath(new_origfname)
             
             try:
-                self.create_dict(self.origfname, self.transfname)
+                self.load_dict(self.origfname, self.transfname)
                 self.update_status_bar()
                 self.tableView.scrollToTop()
             except Exception, e:
@@ -341,7 +352,7 @@ class ApropyMainWindow(Ui_MainWindow):
         header.setResizeMode(1, QtGui.QHeaderView.Stretch)
         header.setResizeMode(2, QtGui.QHeaderView.Stretch)
             
-    def create_dict(self, origname, transname):
+    def load_dict(self, origname, transname):
         self.origins = OrderedDict()
         self.trans = OrderedDict()
         try:
@@ -361,17 +372,6 @@ class ApropyMainWindow(Ui_MainWindow):
             logger.error(str(e))
 
         self.fill_model()
-
-        self.filter_proxy_model.setSourceModel(self.model)
-        self.filter_proxy_model.setFilterKeyColumn(3)
-        self.filter_proxy_model.setFilterCaseSensitivity(QtCore.Qt.CaseInsensitive)
-
-        self.tableView.setModel(self.filter_proxy_model)
-
-        #self.tableView.setSelectionBehavior(self.tableView.SelectRows)
-        self.tableView.setSelectionMode(self.tableView.SingleSelection)
-                
-        self.hide_last_col()
         
 class MyConfig(ConfigParser, object):
     def __init__(self):
