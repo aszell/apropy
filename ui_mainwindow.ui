@@ -187,12 +187,12 @@
   <widget class="QStatusBar" name="statusbar"/>
   <action name="action_Open">
    <property name="text">
-    <string>&amp;Open translated file</string>
+    <string>&amp;Open / Options</string>
    </property>
   </action>
   <action name="action_Save">
    <property name="text">
-    <string>&amp;Save translated file</string>
+    <string>&amp;Save translation</string>
    </property>
   </action>
   <action name="action_About">

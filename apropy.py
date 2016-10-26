@@ -6,10 +6,11 @@ import logging
 from collections import OrderedDict
 from ConfigParser import ConfigParser, DuplicateSectionError
 
-from PySide.QtGui import QApplication, QMainWindow, QFileDialog, QAction, QMessageBox
+from PySide.QtGui import QApplication, QMainWindow, QFileDialog, QAction, QMessageBox, QDialog
 from PySide import QtGui, QtCore
 
 from ui_mainwindow import Ui_MainWindow
+from ui_options import Ui_OptionsDialog
 
 from prop import propread, propsave, TransItem
 
@@ -19,6 +20,7 @@ ININAME = 'apropy.ini'
 ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
 LOG_FNAME = 'apropy.log'
+
 
 class TableDelegate(QtGui.QStyledItemDelegate):
     ''' 
@@ -48,6 +50,7 @@ class TableDelegate(QtGui.QStyledItemDelegate):
     
     def stopEditing(self):
         self.editor.clearFocus()
+
         
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
@@ -187,44 +190,18 @@ class ApropyMainWindow(Ui_MainWindow):
             return False
                 
     def on_open(self):
-        global workdir
-        fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
-                                    caption="cap", dir=workdir, filter="*.properties")
-
-        logger.info("Opening file: " + fullpath)
-        old_transfname = self.transfname
-        old_origfname = self.origfname
+        config.open_options(self.window, self.on_open_done)
         
-        if os.path.isfile(fullpath):
+    def on_open_done(self, params):
+        new_origfname = config.get_origfname()
+        new_transfname = config.get_transfname()
         
-            if is_same_dir(os.path.dirname(fullpath), os.getcwd()):
-                logger.info("File is in current work dir, keeping filename only")
-                self.transfname = os.path.basename(fullpath)
-                new_origfname = ORIG_BASENAME
-            else:
-                logger.info("Translated file directory changed, trying to update original file path also")
-                self.transfname = os.path.normpath(fullpath)
+        if new_origfname != self.origfname or new_transfname != self.transfname:
+            self.origfname, self.transfname = new_origfname, new_transfname
+            self.load_dict(self.origfname, self.transfname)
+            self.update_status_bar()
+            self.tableView.scrollToTop()
                 
-                new_origfname = os.path.join(os.path.dirname(fullpath), ORIG_BASENAME)
-                                            
-            if os.path.isfile(new_origfname) and not is_same_dir(new_origfname, self.origfname):
-                if self.ask_for_basedir_change():
-                    self.origfname = os.path.normpath(new_origfname)
-            
-            try:
-                self.load_dict(self.origfname, self.transfname)
-                self.update_status_bar()
-                self.tableView.scrollToTop()
-            except Exception, e:
-                logger.error("Exception hit:" + str(e))
-                self.transfname = old_transfname
-                self.origfnaem = old_origfname
-        else:
-            logger.info("Selected item is not a file.")
-        
-        if old_transfname != self.transfname:
-            config_update_filenames(self.origfname, self.transfname)
-        
     def on_find(self):
         self.filterEdit.setFocus()
 
@@ -235,7 +212,7 @@ class ApropyMainWindow(Ui_MainWindow):
             self.fill_model(include_translated=True)
             
     def update_hidden_col(self, row):
-        ''' Updates the hidden fourth column used for filtering (all texts together)
+        ''' Updates the hidden fourth column used for filtering (first three cols concatenated with spaces)
         :param topleft: model index for the row whose hidden column is to be updated
         '''
         item_key = self.model.item(row, 0)
@@ -409,7 +386,75 @@ class ApropyMainWindow(Ui_MainWindow):
             logger.error(str(e))
 
         self.fill_model()
+
+
+class MyOptionsDialog(Ui_OptionsDialog):
+    def __init__(self, dialog, callback):
+        Ui_OptionsDialog.__init__(self)
+        self.setupUi(dialog)
+        self.window = dialog
+        self.window.setModal(True)
+        self.create_actions()
+        self.window.show()
+        self.callback = callback
+
+    def create_actions(self):
+        self.openBaseButton.clicked.connect(self.on_open_base)
+        self.openTransButton.clicked.connect(self.on_open_trans)
+        self.okButton.clicked.connect(self.on_ok)
+        self.cancelButton.clicked.connect(self.on_cancel)
+
+    def on_ok(self):
+        self.window.close()
+        self.callback()
         
+    def on_cancel(self):
+        self.window.close()
+
+    def check_rel_path(self, fullpath):
+        ''' 
+        :return: Returns original full path or relative path if file exists, or None on error 
+        '''
+        
+        fpath = None
+        
+        if os.path.isfile(fullpath):
+        
+            if is_same_dir(os.path.dirname(fullpath), os.getcwd()):
+                logger.info("File is in current work dir, keeping filename only")
+                # so moving around the executable and the properties files together is possible
+                fpath = os.path.basename(fullpath)
+            else:
+                logger.debug("Directory changed, trying to update original file path also")
+                fpath = os.path.normpath(fullpath)
+                
+        else:
+            logger.info("Selected item is not a file.")
+            
+        return fpath
+        
+    def on_open_base(self):
+        fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
+                                    caption="cap", dir=workdir, filter="*.properties")
+        
+        fpath = self.check_rel_path(fullpath)
+        if fpath is not None:
+            self.baseFileEdit.setText(fpath)
+            logger.info("Selected base file: " + fpath)
+        else:
+            logger.error("Invalid base file: " + fullpath)
+        
+    def on_open_trans(self):
+        fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
+                                    caption="cap", dir=workdir, filter="*.properties")
+
+        fpath = self.check_rel_path(fullpath)
+        if fpath is not None:
+            self.transFileEdit.setText(fpath)
+            logger.info("Selected translation file: " + fpath)
+        else:
+            logger.error("Invalid base file: " + fullpath)            
+            
 class MyConfig(ConfigParser, object):
     def __init__(self):
         ConfigParser.__init__(self)
@@ -475,6 +520,29 @@ class MyConfig(ConfigParser, object):
             
         return was_missing
 
+    def open_options(self, window, callback):
+        self.dialog = MyOptionsDialog(QDialog(window), self.open_options_done)
+        self.dialog.baseFileEdit.setText(self.get('files', 'orig'))
+        self.dialog.transFileEdit.setText(self.get('files', 'trans'))
+        self.dialog.cleanupBox.setChecked(self.getboolean('options', 'cleanup_keys_on_save'))
+        self.dialog.logToFileBox.setChecked(self.getboolean('options', 'log_to_file'))
+        self.callback = callback
+        
+    def open_options_done(self):
+        # process dialog contents
+        d = self.dialog
+        self.set('files', 'orig', d.baseFileEdit.text())
+        self.set('files', 'trans', d.transFileEdit.text())
+        self.set('options', 'cleanup_keys_on_save', str(d.cleanupBox.isChecked()))
+        self.set('options', 'log_to_file', str(d.logToFileBox.isChecked()))        
+        
+        # store changes in ini
+        logger.info("Options processed")
+        self.save()
+
+        # alert the main window about the config change
+        self.callback(None)
+        
     def get_origfname(self):  return self.get('files', 'orig')
     def set_origfname(self, value):  self.set('files', 'orig', value)
     
@@ -484,11 +552,6 @@ class MyConfig(ConfigParser, object):
     # these params are not exposed, edit ini directly
     def get_cleanup_keys(self): return self.getboolean('options', 'cleanup_keys_on_save')
     def get_log_to_file(self): return self.getboolean('options', 'log_to_file')
-
-def config_update_filenames(new_orig, new_trans):
-    config.set_origfname(new_orig)
-    config.set_transfname(new_trans)
-    config.save()
 
 def is_same_dir(first, second):
     # should be using os.path.samefile(path1, path2) under Unix...

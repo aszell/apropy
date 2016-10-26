@@ -46,5 +46,5 @@ exe = EXE(pyz,
           debug=False,
           strip=False,      # would cause a few KB gain and program would not start...
           upx=True,
-          console=False, icon='apropy.ico')
+          console=True, icon='apropy.ico')
     

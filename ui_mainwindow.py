@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_mainwindow.ui'
 #
-# Created: Wed Oct 19 18:14:57 2016
+# Created: Wed Oct 26 19:40:38 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -135,7 +135,7 @@ class Ui_MainWindow(object):
         self.untransOnlyBox.setText(QtGui.QApplication.translate("MainWindow", "show &untranslated only", None, QtGui.QApplication.UnicodeUTF8))
         self.menu_File.setTitle(QtGui.QApplication.translate("MainWindow", "&File", None, QtGui.QApplication.UnicodeUTF8))
         self.menu_Help.setTitle(QtGui.QApplication.translate("MainWindow", "&Help", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_Open.setText(QtGui.QApplication.translate("MainWindow", "&Open translated file", None, QtGui.QApplication.UnicodeUTF8))
-        self.action_Save.setText(QtGui.QApplication.translate("MainWindow", "&Save translated file", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_Open.setText(QtGui.QApplication.translate("MainWindow", "&Open / Options", None, QtGui.QApplication.UnicodeUTF8))
+        self.action_Save.setText(QtGui.QApplication.translate("MainWindow", "&Save translation", None, QtGui.QApplication.UnicodeUTF8))
         self.action_About.setText(QtGui.QApplication.translate("MainWindow", "&About", None, QtGui.QApplication.UnicodeUTF8))
 
