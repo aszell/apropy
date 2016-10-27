@@ -192,7 +192,7 @@ class ApropyMainWindow(Ui_MainWindow):
     def on_open(self):
         config.open_options(self.window, self.on_open_done)
         
-    def on_open_done(self, params):
+    def on_open_done(self):
         new_origfname = config.get_origfname()
         new_transfname = config.get_transfname()
         
@@ -435,7 +435,7 @@ class MyOptionsDialog(Ui_OptionsDialog):
         
     def on_open_base(self):
         fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
-                                    caption="cap", dir=workdir, filter="*.properties")
+                                    caption="Select base/original file", dir=workdir, filter="*.properties")
         
         fpath = self.check_rel_path(fullpath)
         if fpath is not None:
@@ -446,7 +446,7 @@ class MyOptionsDialog(Ui_OptionsDialog):
         
     def on_open_trans(self):
         fullpath, filtermask = QFileDialog(self.window).getOpenFileName(self.window, 
-                                    caption="cap", dir=workdir, filter="*.properties")
+                                    caption="Select translation file", dir=workdir, filter="*.properties")
 
         fpath = self.check_rel_path(fullpath)
         if fpath is not None:
@@ -474,49 +474,37 @@ class MyConfig(ConfigParser, object):
             logger.info("Saved config: " + self.fname)
 
     def init_missing(self):
-        was_missing = False
+        was_missing = []
         
         try:
             self.add_section("files")
-            was_missing = True
         except DuplicateSectionError, e:
             pass
 
         try:
             self.add_section("options")
-            was_missing = True
         except DuplicateSectionError, e:
             pass
-            
-        try:
-            self.get('files', 'orig')
-        except:
-            self.set('files', 'orig', ORIG_BASENAME)
-            was_missing = True
-            
-        try:
-            self.get('files', 'trans')
-        except:
-            self.set('files', 'trans', TRANS_BASENAME)
-            was_missing = True
+        
 
-        try:
-            self.get('options', 'cleanup_keys_on_save')
-        except:
+        keys = [
+            ('files', 'orig', ''),
+            ('files', 'trans', ''),
+            ('options', 'cleanup_keys_on_save', 'True')
             # bool values must be set to string to avoid 
             #    "TypeError: argument of type 'bool' is not iterable"
             # see http://stackoverflow.com/a/21485083/501814
-            self.set('options', 'cleanup_keys_on_save', 'True')
-            was_missing = True
-
-        try:
-            self.get('options', 'log_to_file')
-        except:
-            self.set('options', 'log_to_file', 'False')
-            was_missing = True
+        ]
+        
+        for k in keys:
+            try:
+                self.get(k[0], k[1])
+            except:
+                self.set(*k)
+                was_missing.append(k[1])
             
         if was_missing:
-            logger.info("Missing options filled in")
+            logger.info("Missing options filled in:" + " ".join(was_missing))
             
         return was_missing
 
@@ -525,7 +513,6 @@ class MyConfig(ConfigParser, object):
         self.dialog.baseFileEdit.setText(self.get('files', 'orig'))
         self.dialog.transFileEdit.setText(self.get('files', 'trans'))
         self.dialog.cleanupBox.setChecked(self.getboolean('options', 'cleanup_keys_on_save'))
-        self.dialog.logToFileBox.setChecked(self.getboolean('options', 'log_to_file'))
         self.callback = callback
         
     def open_options_done(self):
@@ -534,24 +521,17 @@ class MyConfig(ConfigParser, object):
         self.set('files', 'orig', d.baseFileEdit.text())
         self.set('files', 'trans', d.transFileEdit.text())
         self.set('options', 'cleanup_keys_on_save', str(d.cleanupBox.isChecked()))
-        self.set('options', 'log_to_file', str(d.logToFileBox.isChecked()))        
         
         # store changes in ini
         logger.info("Options processed")
         self.save()
 
         # alert the main window about the config change
-        self.callback(None)
+        self.callback()
         
     def get_origfname(self):  return self.get('files', 'orig')
-    def set_origfname(self, value):  self.set('files', 'orig', value)
-    
     def get_transfname(self): return self.get('files', 'trans')
-    def set_transfname(self, value): self.set('files', 'trans', value)
-    
-    # these params are not exposed, edit ini directly
     def get_cleanup_keys(self): return self.getboolean('options', 'cleanup_keys_on_save')
-    def get_log_to_file(self): return self.getboolean('options', 'log_to_file')
 
 def is_same_dir(first, second):
     # should be using os.path.samefile(path1, path2) under Unix...
@@ -571,17 +551,25 @@ def is_same_dir(first, second):
     #print rel1, rel2
     return rel1 == rel2
 
-if __name__ == "__main__":
-    config = MyConfig()
-    workdir = '.'
-    
+def setup_logging():
     logger = logging.getLogger("apropy")
     logger.setLevel(logging.DEBUG)
     ch = logging.StreamHandler()
     fmt = logging.Formatter('%(asctime)s %(levelname)s: %(message)s')
     ch.setFormatter(fmt)
     logger.addHandler(ch)
-
+    ch = logging.FileHandler(LOG_FNAME)
+    ch.setFormatter(fmt)
+    logger.addHandler(ch)
+    return logger
+    
+if __name__ == "__main__":
+    config = MyConfig()
+    workdir = '.'
+    
+    logger = setup_logging()
+    
+    logger.info("Logging to " + LOG_FNAME)
     logger.info(VERSION_STR + " started")
     
     if os.path.isfile(ININAME):
@@ -591,11 +579,6 @@ if __name__ == "__main__":
         config.init_missing()
         config.save(ININAME)
         
-    if config.get_log_to_file():
-        ch = logging.FileHandler(LOG_FNAME)
-        ch.setFormatter(fmt)
-        logger.addHandler(ch)
-        logger.info("Logging to " + LOG_FNAME)
 
     app = QApplication(sys.argv)
     window = QMainWindow()

@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_options.ui'
 #
-# Created: Wed Oct 26 19:40:39 2016
+# Created: Wed Oct 26 19:46:57 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,7 @@ from PySide import QtCore, QtGui
 class Ui_OptionsDialog(object):
     def setupUi(self, OptionsDialog):
         OptionsDialog.setObjectName("OptionsDialog")
-        OptionsDialog.resize(594, 256)
+        OptionsDialog.resize(594, 229)
         self.verticalLayout = QtGui.QVBoxLayout(OptionsDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.fileBox = QtGui.QGroupBox(OptionsDialog)
@@ -51,9 +51,6 @@ class Ui_OptionsDialog(object):
         self.cleanupBox.setToolTip("")
         self.cleanupBox.setObjectName("cleanupBox")
         self.gridLayout_2.addWidget(self.cleanupBox, 0, 0, 1, 1)
-        self.logToFileBox = QtGui.QCheckBox(self.optionsBox)
-        self.logToFileBox.setObjectName("logToFileBox")
-        self.gridLayout_2.addWidget(self.logToFileBox, 1, 0, 1, 1)
         self.verticalLayout.addWidget(self.optionsBox)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -81,7 +78,6 @@ class Ui_OptionsDialog(object):
         self.openTransButton.setText(QtGui.QApplication.translate("OptionsDialog", "Open", None, QtGui.QApplication.UnicodeUTF8))
         self.optionsBox.setTitle(QtGui.QApplication.translate("OptionsDialog", "Other options", None, QtGui.QApplication.UnicodeUTF8))
         self.cleanupBox.setText(QtGui.QApplication.translate("OptionsDialog", "Clean up translated file on save", None, QtGui.QApplication.UnicodeUTF8))
-        self.logToFileBox.setText(QtGui.QApplication.translate("OptionsDialog", "Log console messagesto file", None, QtGui.QApplication.UnicodeUTF8))
         self.okButton.setText(QtGui.QApplication.translate("OptionsDialog", "Ok", None, QtGui.QApplication.UnicodeUTF8))
         self.cancelButton.setText(QtGui.QApplication.translate("OptionsDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
 
