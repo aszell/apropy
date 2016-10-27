@@ -21,6 +21,14 @@ ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
 LOG_FNAME = 'apropy.log'
 
+        
+def error_popup(msg):
+    msgBox = QMessageBox()
+    msgBox.setText(msg)
+    msgBox.setStandardButtons(QMessageBox.Ok)
+    msgBox.setDefaultButton(QMessageBox.Ok)
+    msgBox.exec_()
+
 
 class TableDelegate(QtGui.QStyledItemDelegate):
     ''' 
@@ -51,7 +59,7 @@ class TableDelegate(QtGui.QStyledItemDelegate):
     def stopEditing(self):
         self.editor.clearFocus()
 
-        
+   
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
         Ui_MainWindow.__init__(self)
@@ -374,16 +382,18 @@ class ApropyMainWindow(Ui_MainWindow):
             self.origins = propread(forig)
             forig.close()
         except Exception, e:
-            logger.error("Error opening original file: " + origname)
-            logger.error(str(e))
+            emsg = "Error opening original file: " + origname + "\n" + str(e)
+            logger.error(emsg)
+            error_popup(emsg)
             
         try:
             ftrans = open(transname, 'rU')
             self.trans = propread(ftrans)
             ftrans.close()
         except Exception, e:
-            logger.error("Error opening translated file: " + transname)
-            logger.error(str(e))
+            emsg = "Error opening translated file: " + transname + "\n\nPython exception:\n  " + str(e)
+            logger.error(emsg)
+            error_popup(emsg)
 
         self.fill_model()
 
