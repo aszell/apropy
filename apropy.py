@@ -1,3 +1,6 @@
+# Apropy - a Java properties file editor in python.
+# Copyright (C) 2016 Andras Szell
+
 import sys
 import time
 import os
@@ -14,7 +17,7 @@ from ui_options import Ui_OptionsDialog
 
 from prop import propread, propsave, TransItem
 
-VERSION_STR = "apropy v0.01"
+VERSION_STR = "apropy v0.01 alpha"
 
 ININAME = 'apropy.ini'
 ORIG_BASENAME = 'msg_bundle.properties'
@@ -173,11 +176,8 @@ class ApropyMainWindow(Ui_MainWindow):
         self.transEdit.setPlainText(self.origEdit.toPlainText())
     
     def on_about(self):
-        msgBox = QMessageBox()
-        msgBox.setText(VERSION_STR)
-        msgBox.setStandardButtons(QMessageBox.Ok)
-        msgBox.setDefaultButton(QMessageBox.Ok)
-        msgBox.exec_()
+        QMessageBox.about(self.window, "About apropy", 
+            VERSION_STR + "\n\nCopyright (C) 2016 Andras Szell\nBug reports to: szell.andris@gmail.com")
     
     def on_save(self):
         # Terminate ongoing edits of table to get edited data into model (in case CTRL+S pressed)
