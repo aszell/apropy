@@ -157,11 +157,17 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.transEdit.textChanged.connect(self.on_bottom_data_changed)
 
+        self.copyButton.clicked.connect(self.on_copy)
+       
+        
         # replace tab behaviour
         self.oldTableKeyPress = self.tableView.keyPressEvent
         self.tableView.keyPressEvent = self.tableKeyPress
         self.oldTransEditKeyPress = self.transEdit.keyPressEvent
         self.transEdit.keyPressEvent = self.transEditKeyPress
+    
+    def on_copy(self):
+        self.transEdit.setPlainText(self.origEdit.toPlainText())
     
     def on_about(self):
         msgBox = QMessageBox()
