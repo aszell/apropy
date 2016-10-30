@@ -6,7 +6,7 @@ import logging
 from collections import OrderedDict
 from ConfigParser import ConfigParser, DuplicateSectionError
 
-from PySide.QtGui import QApplication, QMainWindow, QFileDialog, QAction, QMessageBox, QDialog
+from PySide.QtGui import QApplication, QMainWindow, QFileDialog, QAction, QMessageBox, QDialog, QIcon
 from PySide import QtGui, QtCore
 
 from ui_mainwindow import Ui_MainWindow
@@ -79,6 +79,9 @@ class ApropyMainWindow(Ui_MainWindow):
         self.create_actions()
 
         self.tablerefresh_from_bottom = False
+        
+        icon = QIcon(get_basepath('globe.png'))
+        self.window.setWindowIcon(icon)
 
     def setup_tableview(self):
         # filter and model will be created only once
@@ -566,6 +569,15 @@ def is_same_dir(first, second):
     rel1, rel2 = os.path.normpath(rel1), os.path.normpath(rel2)
     #print rel1, rel2
     return rel1 == rel2
+
+def get_basepath(relative_path):
+    """ Get absolute path to resource, works for dev and for PyInstaller """
+    try:
+        # PyInstaller creates a temp folder and stores path in _MEIPASS
+        base_path = sys._MEIPASS
+    except Exception:
+        base_path = os.path.abspath(".")
+    return os.path.join(base_path, relative_path)        
 
 def setup_logging():
     logger = logging.getLogger("apropy")

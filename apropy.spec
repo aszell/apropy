@@ -3,7 +3,7 @@
 block_cipher = None
 
 a = Analysis(['apropy.py'],
-             pathex=['w:\\langer'],
+             pathex=['.'],
              binaries=None,
              datas=None,
              hiddenimports=[],
@@ -14,6 +14,8 @@ a = Analysis(['apropy.py'],
              win_private_assemblies=False,
              cipher=block_cipher)
 
+a.datas += [('globe.png','globe.png', 'Data')]             
+             
 skiplist = [  'bz2', 'unicodedata', 'ctypes', 'ssl', 'win32', 'PyQt4',
                 'svg', 'select', 'opengl', 'xml', 'wintypes'] #, 'shiboken' ]
 
