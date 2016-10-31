@@ -41,6 +41,7 @@ class TableDelegate(QtGui.QStyledItemDelegate):
     the editor so the model gets the currently edited data when save is triggered
     with a shortcut. (Otherwise the currently edited line is not saved just if Enter is 
     pressed before CTRL+S.)
+    Issue that was actually a table cell edit is a separate QLineEdit which the table does not know much about.
     '''
 
     def __init__(self, parent=None):
