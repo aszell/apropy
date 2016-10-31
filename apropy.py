@@ -391,6 +391,10 @@ class ApropyMainWindow(Ui_MainWindow):
             forig = open(origname, 'rU')
             self.origins = propread(forig)
             forig.close()
+            # remove leading spaces in original translation coming from 'key = translation' strings
+            for k in self.origins.keys():
+                self.origins[k].trans = self.origins[k].trans.lstrip(' ')
+            
         except Exception, e:
             emsg = "Error opening original file: " + origname + "\n" + str(e)
             logger.error(emsg)
