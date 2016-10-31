@@ -86,6 +86,9 @@ class ApropyMainWindow(Ui_MainWindow):
         
         icon = QIcon(get_basepath('globe.png'))
         self.window.setWindowIcon(icon)
+        
+        self.edited_key = None
+        self.edited_row = None
 
     def setup_tableview(self):
         # filter and model will be created only once
@@ -244,15 +247,15 @@ class ApropyMainWindow(Ui_MainWindow):
         self.model.blockSignals(signalsBlocked)
 
     def on_table_data_changed(self, topleft, bottomright):
-        key = self.model.item(topleft.row(), 0).text()
+        self.edited_key = self.model.item(topleft.row(), 0).text()
         translation = self.model.item(topleft.row(), 2).text()
-        self.update_translation(key, translation)
+        self.update_translation(self.edited_key, translation)
         self.update_hidden_col(topleft.row())
 
         # refresh the other view of the same data
         if not self.tablerefresh_from_bottom:
             self.transEdit.blockSignals(True)
-            self.update_bottom(key)
+            self.update_bottom()
             self.transEdit.blockSignals(False)
             
     def cleanup_dict(self):
@@ -279,17 +282,6 @@ class ApropyMainWindow(Ui_MainWindow):
             self.trans[key] = newkey
 
         self.update_status_bar()
-
-    def get_selected_row(self):
-        # fixme: the way I get to model item from filtered table row is obviously overcomplicated
-
-        selected = self.tableView.selectedIndexes()
-        if selected: # if nothing selected, text gets lost?
-            fp = self.filter_proxy_model
-            model_idx = fp.mapToSource(fp.index(selected[0].row(), 0))
-            return model_idx.row()
-        else:
-            return None
         
     def table_delete_translation(self):
         row = self.get_selected_row()
@@ -298,36 +290,51 @@ class ApropyMainWindow(Ui_MainWindow):
 
     def on_bottom_data_changed(self):
         self.tablerefresh_from_bottom = True
-        row = self.get_selected_row()
-        if row is not None:
-            self.model.item(row, 2).setText(self.transEdit.toPlainText())
+        if self.edited_row is not None:
+            self.model.item(self.edited_row, 2).setText(self.transEdit.toPlainText())
 
         self.tablerefresh_from_bottom = False
 
-    def update_bottom(self, key):
-        self.origEdit.setPlainText(self.origins[key].trans)
-
-        if key in self.trans:
+    def update_bottom(self):
+        # if nothing is selected
+        if self.edited_key is None:
+            self.origEdit.setPlainText('')
             self.transEdit.blockSignals(True)
-            self.transEdit.setPlainText(self.trans[key].trans)
+            self.transEdit.setPlainText('')
+            self.transEdit.blockSignals(False)
+            return
+
+        self.origEdit.setPlainText(self.origins[self.edited_key].trans)
+
+        if self.edited_key in self.trans:
+            self.transEdit.blockSignals(True)
+            self.transEdit.setPlainText(self.trans[self.edited_key].trans)
             self.transEdit.blockSignals(False)
             
             # comments: take from translated file, but if that is empty, use original file's comments
-            if self.trans[key].comment.strip():
-                self.commentEdit.setPlainText(self.trans[key].comment)
-            elif key in self.origins:
-                self.commentEdit.setPlainText(self.origins[key].comment)
+            if self.trans[self.edited_key].comment.strip():
+                self.commentEdit.setPlainText(self.trans[self.edited_key].comment)
+            elif self.edited_key in self.origins:
+                self.commentEdit.setPlainText(self.origins[self.edited_key].comment)
         else:
             self.transEdit.blockSignals(True)
             self.transEdit.setPlainText('')
             self.transEdit.blockSignals(False)
-            self.commentEdit.setPlainText(self.origins[key].comment)
+            self.commentEdit.setPlainText(self.origins[self.edited_key].comment)
 
     def on_sel_changed(self, topleft, bottomright):
-        modelindex = topleft.indexes()[0]
-        keyindex = self.filter_proxy_model.index(modelindex.row(), 0)
-        key = keyindex.data()
-        self.update_bottom(key)
+        if topleft.indexes():
+            modelindex = topleft.indexes()[0]
+            keyindex = self.filter_proxy_model.index(modelindex.row(), 0)
+            self.edited_key = keyindex.data()
+            self.edited_row = self.filter_proxy_model.mapToSource(keyindex).row()
+            self.update_bottom()
+            # print "selected:", self.edited_key, self.edited_row
+        else:
+            self.edited_key = None
+            self.edited_row = None
+            self.update_bottom()
+            # print "selected: nothing"
 
     def fill_model(self, include_translated=True, **kwargs):
         old_rowcnt = self.model.rowCount()
@@ -373,6 +380,10 @@ class ApropyMainWindow(Ui_MainWindow):
         
         self.hide_last_col()
         self.tableView.scrollToTop()
+
+        self.edited_key = None
+        self.edited_row = None
+        self.update_bottom()
 
     def hide_last_col(self):
         # fixme: when model is reset, table view somehow forgets its hidden cols
