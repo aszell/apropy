@@ -11,6 +11,6 @@ Translating Age of Conquest IV messages:
 
 ## Releases
 
-[Pre-release available for windows](releases/latest)
+[Pre-release available for windows](/releases/latest)
 
 (Linux build is possible, but it will be built on demand only.)
