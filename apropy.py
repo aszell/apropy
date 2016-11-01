@@ -93,7 +93,6 @@ class ApropyMainWindow(Ui_MainWindow):
     def setup_tableview(self):
         # filter and model will be created only once
         self.model = QtGui.QStandardItemModel(5, 3)
-        self.model.setHorizontalHeaderLabels(['ID', 'English', 'Translated'])
         self.filter_proxy_model = QtGui.QSortFilterProxyModel()
         self.filter_proxy_model.setSourceModel(self.model)
         self.filter_proxy_model.setFilterKeyColumn(3)
@@ -104,7 +103,6 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.tableView.setModel(self.filter_proxy_model)
 
-        #self.tableView.setSelectionBehavior(self.tableView.SelectRows)
         self.tableView.setSelectionMode(self.tableView.SingleSelection)
         self.hide_last_col()
 
@@ -375,7 +373,7 @@ class ApropyMainWindow(Ui_MainWindow):
         self.model.blockSignals(False)
         
         # endResetModel must be able to emit signals so filter gets updated
-        
+        self.model.setHorizontalHeaderLabels(['Key', 'Original', 'Translation'])
         self.model.endResetModel()
         
         self.hide_last_col()
