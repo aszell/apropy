@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_mainwindow.ui'
 #
-# Created: Sun Oct 30 02:31:45 2016
+# Created: Tue Nov 01 19:23:45 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -96,6 +96,7 @@ class Ui_MainWindow(object):
         font.setBold(False)
         self.copyButton.setFont(font)
         self.copyButton.setCursor(QtCore.Qt.PointingHandCursor)
+        self.copyButton.setFocusPolicy(QtCore.Qt.ClickFocus)
         self.copyButton.setFlat(True)
         self.copyButton.setObjectName("copyButton")
         self.horizontalLayout_7.addWidget(self.copyButton)

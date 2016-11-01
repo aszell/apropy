@@ -160,6 +160,9 @@
            <property name="cursor">
             <cursorShape>PointingHandCursor</cursorShape>
            </property>
+           <property name="focusPolicy">
+            <enum>Qt::ClickFocus</enum>
+           </property>
            <property name="text">
             <string>&gt;&gt; &amp;copy &gt;&gt;</string>
            </property>
