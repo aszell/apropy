@@ -11,6 +11,6 @@ Translating Age of Conquest IV messages:
 
 ## Releases
 
-[Pre-release available for windows](/releases/latest)
+[Pre-release is available for windows](https://github.com/bandita137/apropy/releases/latest)
 
-(Linux build is possible, but it will be built on demand only.)
+Linux build is possible, but it will be built on demand only.
