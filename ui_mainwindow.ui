@@ -253,6 +253,10 @@
    </property>
   </action>
  </widget>
+ <tabstops>
+  <tabstop>tableView</tabstop>
+  <tabstop>transEdit</tabstop>
+ </tabstops>
  <resources/>
  <connections/>
 </ui>

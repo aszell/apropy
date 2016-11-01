@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_mainwindow.ui'
 #
-# Created: Tue Nov 01 19:23:45 2016
+# Created: Tue Nov 01 19:45:23 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -141,6 +141,7 @@ class Ui_MainWindow(object):
 
         self.retranslateUi(MainWindow)
         QtCore.QMetaObject.connectSlotsByName(MainWindow)
+        MainWindow.setTabOrder(self.tableView, self.transEdit)
 
     def retranslateUi(self, MainWindow):
         MainWindow.setWindowTitle(QtGui.QApplication.translate("MainWindow", "apropy", None, QtGui.QApplication.UnicodeUTF8))

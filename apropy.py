@@ -24,7 +24,7 @@ ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
 LOG_FNAME = 'apropy.log'
 
-        
+
 def error_popup(msg):
     msgBox = QMessageBox()
     msgBox.setText(msg)
@@ -78,6 +78,7 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.setup_tableview()
         self.load_dict(self.origfname, self.transfname)
+        self.table_select_item(0, 2) # select first translation
         self.setup_status_bar()
         
         self.create_actions()
@@ -117,7 +118,7 @@ class ApropyMainWindow(Ui_MainWindow):
         self.progressBar.setGeometry(30, 40, 200, 25)
 
         self.update_status_bar()
-
+        
     def update_status_bar(self):
         orig_keycnt = len(self.origins)
         trans_keycnt = len(self.trans)
@@ -223,7 +224,7 @@ class ApropyMainWindow(Ui_MainWindow):
                 
     def on_find(self):
         self.filterEdit.setFocus()
-
+        
     def on_untransbox(self):
         if self.untransOnlyBox.isChecked():
             self.fill_model(include_translated=False)
@@ -285,6 +286,12 @@ class ApropyMainWindow(Ui_MainWindow):
         row = self.get_selected_row()
         if row is not None:
             self.model.item(row, 2).setText('')
+            
+    def table_select_item(self, row, col):
+        target = self.model.index(row, col)
+        self.tableView.selectionModel().setCurrentIndex(target, QtGui.QItemSelectionModel.ClearAndSelect)
+        #print target
+        self.on_sel_changed(QtGui.QItemSelection(target, target), QtGui.QItemSelection)
 
     def on_bottom_data_changed(self):
         self.tablerefresh_from_bottom = True
@@ -320,9 +327,10 @@ class ApropyMainWindow(Ui_MainWindow):
             self.transEdit.blockSignals(False)
             self.commentEdit.setPlainText(self.origins[self.edited_key].comment)
 
-    def on_sel_changed(self, topleft, bottomright):
-        if topleft.indexes():
-            modelindex = topleft.indexes()[0]
+    def on_sel_changed(self, selected, deselected):
+        # earlier it was possible to select multiple items, kept handling that case
+        if selected.indexes():
+            modelindex = selected.indexes()[0]
             keyindex = self.filter_proxy_model.index(modelindex.row(), 0)
             self.edited_key = keyindex.data()
             self.edited_row = self.filter_proxy_model.mapToSource(keyindex).row()
