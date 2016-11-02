@@ -36,12 +36,12 @@ def error_popup(msg):
 class TableDelegate(QtGui.QStyledItemDelegate):
     ''' 
     Custom tableView edit delegate created to properly follow the state of table view edits. 
-    There were lots of other attempts but this one seems to be the only stable
+    There were lots of other attempts but this one seems to be the only stable one
     which can tell whether the table view is currently edited, and let me close 
     the editor so the model gets the currently edited data when save is triggered
     with a shortcut. (Otherwise the currently edited line is not saved just if Enter is 
     pressed before CTRL+S.)
-    Issue that was actually a table cell edit is a separate QLineEdit which the table does not know much about.
+    Issue was that a table cell edit is a separate QLineEdit which the table does not know much about.
     '''
 
     def __init__(self, parent=None):
@@ -80,7 +80,7 @@ class ApropyMainWindow(Ui_MainWindow):
         self.load_dict(self.origfname, self.transfname)
         self.table_select_item(0, 2) # select first translation
         self.setup_status_bar()
-        
+       
         self.create_actions()
 
         self.tablerefresh_from_bottom = False
@@ -290,7 +290,6 @@ class ApropyMainWindow(Ui_MainWindow):
     def table_select_item(self, row, col):
         target = self.model.index(row, col)
         self.tableView.selectionModel().setCurrentIndex(target, QtGui.QItemSelectionModel.ClearAndSelect)
-        #print target
         self.on_sel_changed(QtGui.QItemSelection(target, target), QtGui.QItemSelection)
 
     def on_bottom_data_changed(self):
