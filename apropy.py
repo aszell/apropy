@@ -63,7 +63,38 @@ class TableDelegate(QtGui.QStyledItemDelegate):
     def stopEditing(self):
         self.editor.clearFocus()
 
-   
+    def initStyleOption(self, option, index):
+        super(TableDelegate, self).initStyleOption(option, index)
+        
+        # first two columns can't be edited so should not be selectable
+        if index.column() < 2:
+            if option.state & QtGui.QStyle.State_Selected:
+                option.state &= ~ QtGui.QStyle.State_Selected
+
+class HighlightModel(QtGui.QStandardItemModel):
+
+    def data(self, index, role):
+        if not index.isValid():
+            return None
+            
+        itemdata = self.item(index.row(), 2).text()
+        
+        if role == QtCore.Qt.DisplayRole:
+            return self.item(index.row(), index.column()).text()
+
+        if role == QtCore.Qt.TextColorRole:
+            if index.column() < 2 and itemdata != "":
+                return QtGui.QColor(130, 130, 130, 255)
+            
+        # do with stylesheet instead?
+        if role == QtCore.Qt.FontRole:
+            if index.column() < 2:
+                font = QtGui.QFont()
+                font.setBold(True)
+                return font
+                        
+        return super(HighlightModel, self).data(index, role)
+        
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
         Ui_MainWindow.__init__(self)
@@ -90,7 +121,7 @@ class ApropyMainWindow(Ui_MainWindow):
 
     def setup_tableview(self):
         # filter and model will be created only once
-        self.model = QtGui.QStandardItemModel(5, 3)
+        self.model = HighlightModel(5, 3)
         self.filter_proxy_model = QtGui.QSortFilterProxyModel()
         self.filter_proxy_model.setSourceModel(self.model)
         self.filter_proxy_model.setFilterKeyColumn(3)
@@ -422,6 +453,9 @@ class ApropyMainWindow(Ui_MainWindow):
             logger.error(emsg)
             error_popup(emsg)
 
+        # test: use only 10 lines
+        #self.origins = OrderedDict(self.origins.items()[:10])
+            
         self.fill_model()
 
 
