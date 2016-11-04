@@ -305,7 +305,10 @@ class ApropyMainWindow(Ui_MainWindow):
             else:
                 self.trans[key].trans = translation                
         elif translation.strip():
-            newkey = TransItem(key, self.origins[key].comment, translation)
+            if config.get_copy_comments():
+                newkey = TransItem(key, self.origins[key].comment, translation)
+            else:
+                newkey = TransItem(key, '', translation)
             self.trans[key] = newkey
 
         self.update_status_bar()
@@ -561,7 +564,8 @@ class MyConfig(ConfigParser, object):
         keys = [
             ('files', 'orig', ''),
             ('files', 'trans', ''),
-            ('options', 'cleanup_keys_on_save', 'True')
+            ('options', 'cleanup_keys_on_save', 'False'),
+            ('options', 'copy_comments', 'False')
             # bool values must be set to string to avoid 
             #    "TypeError: argument of type 'bool' is not iterable"
             # see http://stackoverflow.com/a/21485083/501814
@@ -584,6 +588,7 @@ class MyConfig(ConfigParser, object):
         self.dialog.baseFileEdit.setText(self.get('files', 'orig'))
         self.dialog.transFileEdit.setText(self.get('files', 'trans'))
         self.dialog.cleanupBox.setChecked(self.getboolean('options', 'cleanup_keys_on_save'))
+        self.dialog.copyCommentBox.setChecked(self.getboolean('options', 'copy_comments'))
         self.callback = callback
         
     def open_options_done(self):
@@ -592,6 +597,7 @@ class MyConfig(ConfigParser, object):
         self.set('files', 'orig', d.baseFileEdit.text())
         self.set('files', 'trans', d.transFileEdit.text())
         self.set('options', 'cleanup_keys_on_save', str(d.cleanupBox.isChecked()))
+        self.set('options', 'copy_comments', str(d.copyCommentBox.isChecked()))
         
         # store changes in ini
         logger.info("Options processed")
@@ -603,6 +609,7 @@ class MyConfig(ConfigParser, object):
     def get_origfname(self):  return self.get('files', 'orig')
     def get_transfname(self): return self.get('files', 'trans')
     def get_cleanup_keys(self): return self.getboolean('options', 'cleanup_keys_on_save')
+    def get_copy_comments(self): return self.getboolean('options', 'copy_comments')
 
 def is_same_dir(first, second):
     # should be using os.path.samefile(path1, path2) under Unix...

@@ -6,9 +6,15 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>594</width>
-    <height>229</height>
+    <width>610</width>
+    <height>256</height>
    </rect>
+  </property>
+  <property name="sizePolicy">
+   <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+    <horstretch>0</horstretch>
+    <verstretch>0</verstretch>
+   </sizepolicy>
   </property>
   <property name="windowTitle">
    <string>Open / Options</string>
@@ -75,7 +81,14 @@
          <string extracomment="Remove translation keys missing from base file, order keys according to base translation."/>
         </property>
         <property name="text">
-         <string>Clean up translated file on save</string>
+         <string>Clean up translated file on save (remove translations missing from original, order as original)</string>
+        </property>
+       </widget>
+      </item>
+      <item row="1" column="0">
+       <widget class="QCheckBox" name="copyCommentBox">
+        <property name="text">
+         <string>Copy comments from original to translated (for new translations)</string>
         </property>
        </widget>
       </item>

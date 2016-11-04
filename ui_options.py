@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_options.ui'
 #
-# Created: Wed Oct 26 19:46:57 2016
+# Created: Fri Nov 04 18:33:57 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -12,7 +12,12 @@ from PySide import QtCore, QtGui
 class Ui_OptionsDialog(object):
     def setupUi(self, OptionsDialog):
         OptionsDialog.setObjectName("OptionsDialog")
-        OptionsDialog.resize(594, 229)
+        OptionsDialog.resize(610, 256)
+        sizePolicy = QtGui.QSizePolicy(QtGui.QSizePolicy.Expanding, QtGui.QSizePolicy.Expanding)
+        sizePolicy.setHorizontalStretch(0)
+        sizePolicy.setVerticalStretch(0)
+        sizePolicy.setHeightForWidth(OptionsDialog.sizePolicy().hasHeightForWidth())
+        OptionsDialog.setSizePolicy(sizePolicy)
         self.verticalLayout = QtGui.QVBoxLayout(OptionsDialog)
         self.verticalLayout.setObjectName("verticalLayout")
         self.fileBox = QtGui.QGroupBox(OptionsDialog)
@@ -51,6 +56,9 @@ class Ui_OptionsDialog(object):
         self.cleanupBox.setToolTip("")
         self.cleanupBox.setObjectName("cleanupBox")
         self.gridLayout_2.addWidget(self.cleanupBox, 0, 0, 1, 1)
+        self.copyCommentBox = QtGui.QCheckBox(self.optionsBox)
+        self.copyCommentBox.setObjectName("copyCommentBox")
+        self.gridLayout_2.addWidget(self.copyCommentBox, 1, 0, 1, 1)
         self.verticalLayout.addWidget(self.optionsBox)
         self.horizontalLayout = QtGui.QHBoxLayout()
         self.horizontalLayout.setObjectName("horizontalLayout")
@@ -77,7 +85,8 @@ class Ui_OptionsDialog(object):
         self.label_2.setText(QtGui.QApplication.translate("OptionsDialog", "Translated file:", None, QtGui.QApplication.UnicodeUTF8))
         self.openTransButton.setText(QtGui.QApplication.translate("OptionsDialog", "Open", None, QtGui.QApplication.UnicodeUTF8))
         self.optionsBox.setTitle(QtGui.QApplication.translate("OptionsDialog", "Other options", None, QtGui.QApplication.UnicodeUTF8))
-        self.cleanupBox.setText(QtGui.QApplication.translate("OptionsDialog", "Clean up translated file on save", None, QtGui.QApplication.UnicodeUTF8))
+        self.cleanupBox.setText(QtGui.QApplication.translate("OptionsDialog", "Clean up translated file on save (remove translations missing from original, order as original)", None, QtGui.QApplication.UnicodeUTF8))
+        self.copyCommentBox.setText(QtGui.QApplication.translate("OptionsDialog", "Copy comments from original to translated (for new translations)", None, QtGui.QApplication.UnicodeUTF8))
         self.okButton.setText(QtGui.QApplication.translate("OptionsDialog", "Ok", None, QtGui.QApplication.UnicodeUTF8))
         self.cancelButton.setText(QtGui.QApplication.translate("OptionsDialog", "Cancel", None, QtGui.QApplication.UnicodeUTF8))
 
