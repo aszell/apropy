@@ -17,7 +17,7 @@ from ui_options import Ui_OptionsDialog
 
 from prop import propread, propsave, TransItem
 
-VERSION_STR = "apropy v0.0.1 alpha"
+VERSION_STR = "apropy v0.0.2 alpha"
 
 ININAME = 'apropy.ini'
 ORIG_BASENAME = 'msg_bundle.properties'
