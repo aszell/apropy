@@ -87,9 +87,6 @@ class ApropyMainWindow(Ui_MainWindow):
         
         icon = QIcon(get_basepath('globe.png'))
         self.window.setWindowIcon(icon)
-        
-        self.edited_key = None
-        self.edited_row = None
 
     def setup_tableview(self):
         # filter and model will be created only once
@@ -283,9 +280,8 @@ class ApropyMainWindow(Ui_MainWindow):
         self.update_status_bar()
         
     def table_delete_translation(self):
-        row = self.get_selected_row()
-        if row is not None:
-            self.model.item(row, 2).setText('')
+        if self.edited_row is not None:
+            self.model.item(self.edited_row, 2).setText('')
             
     def table_select_item(self, row, col):
         target = self.model.index(row, col)
@@ -401,7 +397,8 @@ class ApropyMainWindow(Ui_MainWindow):
         header.setResizeMode(2, QtGui.QHeaderView.Stretch)
             
     def load_dict(self, origname, transname):
-        self.origins = OrderedDict()
+        # empty dict in case file read fails
+        self.origins = OrderedDict() 
         self.trans = OrderedDict()
         try:
             forig = open(origname, 'rU')
@@ -627,11 +624,11 @@ if __name__ == "__main__":
         logger.warn("Unable to read ini file, creating...")
         config.init_missing()
         config.save(ININAME)
-        
+  
 
     app = QApplication(sys.argv)
     window = QMainWindow()
     awindow = ApropyMainWindow(window, config)
     window.show()
-    
+  
     sys.exit(app.exec_())
