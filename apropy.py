@@ -76,11 +76,13 @@ class HighlightModel(QtGui.QStandardItemModel):
     def data(self, index, role):
         if not index.isValid():
             return None
-            
-        itemdata = self.item(index.row(), 2).text()
+        
+        currtrans = self.item(index.row(), 2)        
+        itemdata = currtrans.text() if currtrans is not None else ''
         
         if role == QtCore.Qt.DisplayRole:
-            return self.item(index.row(), index.column()).text()
+            curritem = self.item(index.row(), index.column())
+            return curritem.text() if curritem is not None else ''
 
         if role == QtCore.Qt.TextColorRole:
             if index.column() < 2 and itemdata != "":
@@ -434,27 +436,30 @@ class ApropyMainWindow(Ui_MainWindow):
         # empty dict in case file read fails
         self.origins = OrderedDict() 
         self.trans = OrderedDict()
-        try:
-            forig = open(origname, 'rU')
-            self.origins = propread(forig)
-            forig.close()
-            # remove leading spaces in original translation coming from 'key = translation' strings
-            for k in self.origins.keys():
-                self.origins[k].trans = self.origins[k].trans.lstrip(' ')
-            
-        except Exception, e:
-            emsg = "Error opening original file: " + origname + "\n" + str(e)
-            logger.error(emsg)
-            error_popup(emsg)
-            
-        try:
-            ftrans = open(transname, 'rU')
-            self.trans = propread(ftrans)
-            ftrans.close()
-        except Exception, e:
-            emsg = "Error opening translated file: " + transname + "\n\nPython exception:\n  " + str(e)
-            logger.error(emsg)
-            error_popup(emsg)
+
+        if origname != '' and transname != '':
+        
+            try:
+                forig = open(origname, 'rU')
+                self.origins = propread(forig)
+                forig.close()
+                # remove leading spaces in original translation coming from 'key = translation' strings
+                for k in self.origins.keys():
+                    self.origins[k].trans = self.origins[k].trans.lstrip(' ')
+                
+            except Exception, e:
+                emsg = "Error opening original file: " + origname + "\n" + str(e)
+                logger.error(emsg)
+                error_popup(emsg)
+                
+            try:
+                ftrans = open(transname, 'rU')
+                self.trans = propread(ftrans)
+                ftrans.close()
+            except Exception, e:
+                emsg = "Error opening translated file: " + transname + "\n\nPython exception:\n  " + str(e)
+                logger.error(emsg)
+                error_popup(emsg)
 
         # test: use only 10 lines
         #self.origins = OrderedDict(self.origins.items()[:10])

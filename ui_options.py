@@ -2,7 +2,7 @@
 
 # Form implementation generated from reading ui file 'ui_options.ui'
 #
-# Created: Fri Nov 04 18:33:57 2016
+# Created: Fri Nov 04 18:46:40 2016
 #      by: pyside-uic 0.2.14 running on PySide 1.1.1
 #
 # WARNING! All changes made in this file will be lost!
@@ -80,7 +80,7 @@ class Ui_OptionsDialog(object):
     def retranslateUi(self, OptionsDialog):
         OptionsDialog.setWindowTitle(QtGui.QApplication.translate("OptionsDialog", "Open / Options", None, QtGui.QApplication.UnicodeUTF8))
         self.fileBox.setTitle(QtGui.QApplication.translate("OptionsDialog", "Files", None, QtGui.QApplication.UnicodeUTF8))
-        self.label.setText(QtGui.QApplication.translate("OptionsDialog", "Base translation:", None, QtGui.QApplication.UnicodeUTF8))
+        self.label.setText(QtGui.QApplication.translate("OptionsDialog", "Original file:", None, QtGui.QApplication.UnicodeUTF8))
         self.openBaseButton.setText(QtGui.QApplication.translate("OptionsDialog", "Open", None, QtGui.QApplication.UnicodeUTF8))
         self.label_2.setText(QtGui.QApplication.translate("OptionsDialog", "Translated file:", None, QtGui.QApplication.UnicodeUTF8))
         self.openTransButton.setText(QtGui.QApplication.translate("OptionsDialog", "Open", None, QtGui.QApplication.UnicodeUTF8))
