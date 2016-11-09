@@ -351,6 +351,7 @@ class ApropyMainWindow(Ui_MainWindow):
             self.transEdit.blockSignals(True)
             self.transEdit.setPlainText('')
             self.transEdit.blockSignals(False)
+            self.commentEdit.setPlainText('')
             return
 
         self.origEdit.setPlainText(self.origins[self.edited_key].trans)
