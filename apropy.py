@@ -323,10 +323,15 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.update_status_bar()
         
+    def row_updated(self, row):
+        self.model.item(self.edited_row, 0).emitDataChanged()
+        self.model.item(self.edited_row, 1).emitDataChanged()
+            
     def table_delete_translation(self):
         if self.edited_row is not None:
             self.model.item(self.edited_row, 2).setText('')
-            
+        self.row_updated(self.edited_row)        
+        
     def table_select_item(self, row, col):
         target = self.model.index(row, col)
         self.tableView.selectionModel().setCurrentIndex(target, QtGui.QItemSelectionModel.ClearAndSelect)
