@@ -120,6 +120,14 @@ class ApropyMainWindow(Ui_MainWindow):
         
         icon = QIcon(get_basepath('globe.png'))
         self.window.setWindowIcon(icon)
+        
+        self.setup_fonts()
+        
+    def setup_fonts(self):
+        font = self.transEdit.font()
+        font.setPointSize(10)
+        self.transEdit.setFont(font)
+        self.origEdit.setFont(font)
 
     def setup_tableview(self):
         # filter and model will be created only once
