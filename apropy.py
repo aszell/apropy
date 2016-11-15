@@ -24,6 +24,7 @@ ORIG_BASENAME = 'msg_bundle.properties'
 TRANS_BASENAME = 'msg_bundle_hu.properties'
 LOG_FNAME = 'apropy.log'
 
+DEBUG_ROWLIMIT = None
 
 def error_popup(msg):
     msgBox = QMessageBox()
@@ -428,6 +429,9 @@ class ApropyMainWindow(Ui_MainWindow):
         row = 0
 
         for tr in self.origins.values():
+            if DEBUG_ROWLIMIT is not None and row >= DEBUG_ROWLIMIT:
+                break
+        
             # skip lines with existing translation if 'untranslated only' selected
             if tr.key in self.trans and not include_translated:
                 continue
