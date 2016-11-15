@@ -72,21 +72,30 @@ class TableDelegate(QtGui.QStyledItemDelegate):
                 option.state &= ~ QtGui.QStyle.State_Selected
 
 class HighlightModel(QtGui.QStandardItemModel):
-
+    def __init__(self, *args, **kwargs):
+        super(HighlightModel, self).__init__(*args, **kwargs)
+        self.backup = []
+        
     def data(self, index, role):
         if not index.isValid():
             return None
         
-        currtrans = self.item(index.row(), 2)        
+        currtrans = self.item(index.row(), 2)
         itemdata = currtrans.text() if currtrans is not None else ''
-        
+        hasbackup = len(self.backup) > index.row()
+
         if role == QtCore.Qt.DisplayRole:
             curritem = self.item(index.row(), index.column())
             return curritem.text() if curritem is not None else ''
 
         if role == QtCore.Qt.TextColorRole:
             if index.column() < 2 and itemdata != "":
-                return QtGui.QColor(130, 130, 130, 255)
+                # if translation text is nonempty, it's either an unsaved modification...
+                if hasbackup and itemdata != self.backup[index.row()]:
+                    return QtGui.QColor(0, 180, 0, 255)
+                # ...or an already saved translated item
+                else:
+                    return QtGui.QColor(130, 130, 130, 255)
             
         # do with stylesheet instead?
         if role == QtCore.Qt.FontRole:
@@ -96,6 +105,24 @@ class HighlightModel(QtGui.QStandardItemModel):
                 return font
                         
         return super(HighlightModel, self).data(index, role)
+
+    def create_checkpoint(self):
+        ''' Stores all the current translations for later comparison '''
+        new_backup = []
+
+        for row in range(self.rowCount()):
+            text = self.item(row, 2).text()
+            
+            # emit datachanges for all rows that were edited so green highlight is removed on save
+            if len(self.backup) > row and text != self.backup[row]:
+                self.item(row, 0).emitDataChanged()
+                self.item(row, 1).emitDataChanged()
+            
+            new_backup.append(text)
+
+        self.backup = new_backup
+            
+        logger.debug("Checkpoint contains %d items" % len(self.backup))
         
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
@@ -234,6 +261,8 @@ class ApropyMainWindow(Ui_MainWindow):
         count =propsave(fout, self.trans)
         fout.close()
         logger.info(self.transfname + ' saved: %d items' % count)
+        
+        self.model.create_checkpoint()
         
     def ask_for_basedir_change(self):
         msgBox = QMessageBox()
@@ -479,6 +508,7 @@ class ApropyMainWindow(Ui_MainWindow):
         #self.origins = OrderedDict(self.origins.items()[:10])
             
         self.fill_model()
+        self.model.create_checkpoint()
 
 
 class MyOptionsDialog(Ui_OptionsDialog):
