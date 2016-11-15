@@ -125,6 +125,14 @@ class HighlightModel(QtGui.QStandardItemModel):
                 self.item(row, 1).emitDataChanged()
             
         logger.debug("Checkpoint contains %d items" % len(self.backup))
+
+    def has_changes(self, origins, trans):
+        for key in origins.keys():
+            text = '' if key not in trans else trans[key].trans
+            
+            if text != self.backup[key]:
+                return True
+        return False
         
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
@@ -241,6 +249,9 @@ class ApropyMainWindow(Ui_MainWindow):
         self.tableView.keyPressEvent = self.tableKeyPress
         self.oldTransEditKeyPress = self.transEdit.keyPressEvent
         self.transEdit.keyPressEvent = self.transEditKeyPress
+        
+        self.oldCloseEvent = self.window.closeEvent
+        self.window.closeEvent = self.on_close
     
     def on_copy(self):
         self.transEdit.setPlainText(self.origEdit.toPlainText())
@@ -249,12 +260,8 @@ class ApropyMainWindow(Ui_MainWindow):
         QMessageBox.about(self.window, "About apropy", 
             VERSION_STR + "\n\nCopyright (C) 2016 Andras Szell\nBug reports to: szell.andris@gmail.com")
     
-    def on_save(self):
-        # Terminate ongoing edits of table to get edited data into model (in case CTRL+S pressed)
-        if self.tableEditor.isEdited():
-            self.tableEditor.stopEditing()
-            self.tableView.setFocus()
-        
+    
+    def save(self):
         if self.config.get_cleanup_keys():
             logger.info("Cleaning up and reordering translation keys before saving")
             self.cleanup_dict()
@@ -263,8 +270,38 @@ class ApropyMainWindow(Ui_MainWindow):
         count =propsave(fout, self.trans)
         fout.close()
         logger.info(self.transfname + ' saved: %d items' % count)
+    
+    def on_save(self):
+        # Terminate ongoing edits of table to get edited data into model (in case CTRL+S pressed)
+        if self.tableEditor.isEdited():
+            self.tableEditor.stopEditing()
+            self.tableView.setFocus()
         
+        self.save()
+        
+        # update highlighting (edited items were green)
         self.model.create_checkpoint(self.origins, self.trans)
+
+    def on_close(self, event):
+        if self.model.has_changes(self.origins, self.trans):
+            res = QMessageBox.warning(self.window, "Unsaved changes", 
+                    "You have unsaved translation strings. Exit without saving?", 
+                    QMessageBox.Save | QMessageBox.Discard | QMessageBox.Cancel, QMessageBox.Cancel)
+
+            if res == QMessageBox.Save:
+                logger.info("Save changes and quit")
+                self.save()
+                self.oldCloseEvent(event)
+                event.accept()            
+            elif res == QMessageBox.Discard:
+                logger.info("Discard changes and quit")
+                self.oldCloseEvent(event)
+                event.accept()            
+            else:
+                event.ignore()
+        else:
+            self.oldCloseEvent(event)
+            event.accept()
         
     def ask_for_basedir_change(self):
         msgBox = QMessageBox()
