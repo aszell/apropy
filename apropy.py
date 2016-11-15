@@ -204,7 +204,7 @@ class ApropyMainWindow(Ui_MainWindow):
     def tableKeyPress(self, event):
         ''' Key bindings are hacked so a TAB press on table does not go to next cell but
             switch between the detailed bottom editbox and table. '''
-        if event.key() == QtCore.Qt.Key_Tab:
+        if event.key() in [QtCore.Qt.Key_Tab, QtCore.Qt.Key_Backtab]:
             event.ignore()
         elif event.key() == QtCore.Qt.Key_Delete:
             self.table_delete_translation()
@@ -214,7 +214,7 @@ class ApropyMainWindow(Ui_MainWindow):
     def transEditKeyPress(self, event):
         ''' Bottom edit box should not accept TABs but instead window should switch to
             translation table '''
-        if event.key() == QtCore.Qt.Key_Tab:
+        if event.key() in [QtCore.Qt.Key_Tab, QtCore.Qt.Key_Backtab]:
             event.ignore()
         else:
             self.oldTransEditKeyPress(event)
@@ -243,7 +243,6 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.copyButton.clicked.connect(self.on_copy)
        
-        
         # replace tab behaviour
         self.oldTableKeyPress = self.tableView.keyPressEvent
         self.tableView.keyPressEvent = self.tableKeyPress
@@ -259,7 +258,6 @@ class ApropyMainWindow(Ui_MainWindow):
     def on_about(self):
         QMessageBox.about(self.window, "About apropy", 
             VERSION_STR + "\n\nCopyright (C) 2016 Andras Szell\nBug reports to: szell.andris@gmail.com")
-    
     
     def save(self):
         if self.config.get_cleanup_keys():
