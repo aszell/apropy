@@ -134,6 +134,20 @@ class HighlightModel(QtGui.QStandardItemModel):
                 return True
         return False
         
+    def is_changed_idx(self, modelindex):
+        key = self.item(modelindex.row(), 0).text()
+        curr_trans = self.item(modelindex.row(), 2).text()
+        return self.backup[key] != curr_trans
+        
+    def revert_translation(self, modelindex):
+        row = modelindex.row()
+        key = self.item(row, 0).text()
+        currtrans = self.item(modelindex.row(), 2).text()
+        if key in self.backup and self.backup[key] != currtrans:
+            self.item(row, 2).setText(self.backup[key])
+            self.item(row, 0).emitDataChanged()
+            self.item(row, 1).emitDataChanged()
+                    
 class ApropyMainWindow(Ui_MainWindow):
     def __init__(self, window, config):
         Ui_MainWindow.__init__(self)
@@ -251,6 +265,9 @@ class ApropyMainWindow(Ui_MainWindow):
         
         self.oldCloseEvent = self.window.closeEvent
         self.window.closeEvent = self.on_close
+         
+        # right-click context menu for undo/copy/paste etc
+        self.window.contextMenuEvent = self.on_context_menu        
     
     def on_copy(self):
         self.transEdit.setPlainText(self.origEdit.toPlainText())
@@ -360,6 +377,29 @@ class ApropyMainWindow(Ui_MainWindow):
             self.transEdit.blockSignals(True)
             self.update_bottom()
             self.transEdit.blockSignals(False)
+    
+    def on_context_menu(self, event):
+        # undo action
+        selected = self.get_selected_index()
+        if selected is not None:
+            self.contextmenu = QtGui.QMenu(self.window)
+        
+            action_revert = QtGui.QAction('&Revert/Undo', self.window)
+            action_revert.triggered.connect(self.on_undo_context)
+            if not self.model.is_changed_idx(selected):
+                action_revert.setEnabled(False)
+        
+            self.contextmenu.addAction(action_revert)
+            
+            self.contextmenu.popup(QtGui.QCursor.pos())
+            
+        
+    def on_undo_context(self):
+        print "Undo"
+        selected = self.get_selected_index()
+        if selected is not None and self.model.is_changed_idx(selected):
+            self.model.revert_translation(selected)
+        logger.info("Reverted key %s" % self.model.item(selected.row(), 0).text())
             
     def cleanup_dict(self):
         # reorder translated strings to match original translation,
@@ -437,6 +477,16 @@ class ApropyMainWindow(Ui_MainWindow):
             self.transEdit.setPlainText('')
             self.transEdit.blockSignals(False)
             self.commentEdit.setPlainText(self.origins[self.edited_key].comment)
+
+    def get_selected_index(self):
+        selected = self.tableView.selectedIndexes()
+
+        if selected:
+            fp = self.filter_proxy_model
+            model_idx = fp.mapToSource(fp.index(selected[0].row(), selected[0].column()))
+            return model_idx
+        else:
+            return None
 
     def on_sel_changed(self, selected, deselected):
         # earlier it was possible to select multiple items, kept handling that case
