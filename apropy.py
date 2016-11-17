@@ -139,6 +139,9 @@ class HighlightModel(QtGui.QStandardItemModel):
         curr_trans = self.item(modelindex.row(), 2).text()
         return self.backup[key] != curr_trans
         
+    def is_empty(self, modelindex):
+        return self.itemFromIndex(modelindex).text().strip(' ') == ''
+        
     def revert_translation(self, modelindex):
         row = modelindex.row()
         key = self.item(row, 0).text()
@@ -149,13 +152,15 @@ class HighlightModel(QtGui.QStandardItemModel):
             self.item(row, 1).emitDataChanged()
                     
 class ApropyMainWindow(Ui_MainWindow):
-    def __init__(self, window, config):
+    def __init__(self, application, window, config):
         Ui_MainWindow.__init__(self)
         
         self.config = config
 
         self.setupUi(window)
         self.window = window
+        self.application = app
+        self.clipboard = app.clipboard()
         
         self.origfname = config.get_origfname()
         self.transfname = config.get_transfname()
@@ -255,7 +260,7 @@ class ApropyMainWindow(Ui_MainWindow):
 
         self.transEdit.textChanged.connect(self.on_bottom_data_changed)
 
-        self.copyButton.clicked.connect(self.on_copy)
+        self.copyButton.clicked.connect(self.on_copy_button)
        
         # replace tab behaviour
         self.oldTableKeyPress = self.tableView.keyPressEvent
@@ -269,7 +274,7 @@ class ApropyMainWindow(Ui_MainWindow):
         # right-click context menu for undo/copy/paste etc
         self.window.contextMenuEvent = self.on_context_menu        
     
-    def on_copy(self):
+    def on_copy_button(self):
         self.transEdit.setPlainText(self.origEdit.toPlainText())
     
     def on_about(self):
@@ -384,22 +389,45 @@ class ApropyMainWindow(Ui_MainWindow):
         if selected is not None:
             self.contextmenu = QtGui.QMenu(self.window)
         
+            action_copy = QtGui.QAction('&Copy', self.window)
+            action_copy.triggered.connect(self.on_copy_context)
+            if self.model.is_empty(selected):
+                action_copy.setEnabled(False)
+            self.contextmenu.addAction(action_copy)  
+                
+            if selected.column() == 2:
+                action_paste = QtGui.QAction('&Paste', self.window)
+                action_paste.triggered.connect(self.on_paste_context)
+                if self.clipboard.text() == "":
+                    action_paste.setEnabled(False)
+                self.contextmenu.addAction(action_paste)
+                
+            self.contextmenu.addSeparator()
+            
             action_revert = QtGui.QAction('&Revert/Undo', self.window)
             action_revert.triggered.connect(self.on_undo_context)
             if not self.model.is_changed_idx(selected):
                 action_revert.setEnabled(False)
-        
             self.contextmenu.addAction(action_revert)
             
             self.contextmenu.popup(QtGui.QCursor.pos())
             
-        
     def on_undo_context(self):
-        print "Undo"
         selected = self.get_selected_index()
         if selected is not None and self.model.is_changed_idx(selected):
             self.model.revert_translation(selected)
-        logger.info("Reverted key %s" % self.model.item(selected.row(), 0).text())
+        logger.info("Reverted key '%s'" % self.model.item(selected.row(), 0).text())
+        
+    def on_copy_context(self):
+        selected = self.get_selected_index()
+        if selected is not None:
+            #print self.clipboard.text()
+            self.clipboard.setText(self.model.itemFromIndex(selected).text())
+
+    def on_paste_context(self):
+        selected = self.get_selected_index()
+        if selected is not None:
+            self.model.item(selected.row(), 2).setText(self.clipboard.text())
             
     def cleanup_dict(self):
         # reorder translated strings to match original translation,
@@ -807,7 +835,7 @@ if __name__ == "__main__":
 
     app = QApplication(sys.argv)
     window = QMainWindow()
-    awindow = ApropyMainWindow(window, config)
+    awindow = ApropyMainWindow(app, window, config)
     window.show()
   
     sys.exit(app.exec_())
